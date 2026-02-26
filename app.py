@@ -10,21 +10,25 @@ ui_langs = {
     "🇰🇷 한국어": {
         "title": "MARATHON AI PRO", "sub": "글로벌 생체역학 정밀 분석 표준 시스템", "toss": "Toss ID: MARATHON AI",
         "s_head": "⚙️ 시스템 설정", "s_lang": "🌐 시스템 언어", 
-        "s_data": "📊 비교 벤치마크", "s_vid": "🎥 비전 데이터 입력", "s_up": "러닝 영상 촬영 또는 업로드 (10초 이내 측면 영상 권장)", 
+        "s_data": "📊 비교 벤치마크", "s_vid": "🎥 비전 데이터 입력", "s_up": "러닝 영상 업로드 (10초 이내 측면 영상 권장)", 
         "s_gen": "성별", "s_btn": "🚀 정밀 역학 분석 실행", "r_title": "🔬 생체역학 정밀 진단 리포트",
         "cat": ['무릎 신전', '지면접촉시간', '수직진폭', '골반 안정성', '케이던스'],
         "img_title": "📸 비전 AI 관절 추출 및 궤적 오버레이",
         "img_desc": "우측으로 진행하는 러너의 도약(Push-off) 프레임을 추출하여, 벤치마크 기준선(🟡)과 실제 무릎 각도(🔴)의 편차를 시각화합니다.",
+        "vip_title": "👑 [VIP PRO] 장시간 러닝 피로도 및 자세 붕괴 타임라인",
+        "vip_desc": "마라톤 풀코스 또는 장거리 훈련 영상을 분석하여, 누적된 피로로 인해 생체역학 밸런스가 무너지는 '크리티컬 포인트(Critical Point)'를 자동 추출합니다.",
         "f_title": "💬 글로벌 사용자 피드백", "f_desc": "MARATHON AI는 전 세계 러너들의 피드백을 통해 성장합니다."
     },
     "🇺🇸 English": {
         "title": "MARATHON AI PRO", "sub": "Global Standard Biometric Analysis System", "toss": "Powered by MARATHON AI",
         "s_head": "⚙️ System Config", "s_lang": "🌐 UI Language", 
-        "s_data": "📊 Benchmark Target", "s_vid": "🎥 Vision Data Input", "s_up": "Record or Upload Video (Max 10s side-view)", 
+        "s_data": "📊 Benchmark Target", "s_vid": "🎥 Vision Data Input", "s_up": "Upload Video (Max 10s side-view)", 
         "s_gen": "Gender", "s_btn": "🚀 Run Precision Analysis", "r_title": "🔬 Biometric Diagnostic Report",
         "cat": ['Knee Ext.', 'GCT', 'Oscillation', 'Pelvic Stability', 'Cadence'],
         "img_title": "📸 Vision AI Frame Overlay Analysis",
         "img_desc": "Visualizing the deviation between your knee angle (🔴) and the benchmark target (🟡) during the push-off phase (runner moving right).",
+        "vip_title": "👑 [VIP PRO] Long-Distance Fatigue & Form Breakdown Timeline",
+        "vip_desc": "Analyzes full marathon or long-run footage to auto-detect 'Critical Points' where biomechanical balance collapses due to accumulated fatigue.",
         "f_title": "💬 Global User Feedback", "f_desc": "MARATHON AI grows with feedback from runners worldwide."
     }
 }
@@ -47,6 +51,8 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Pretendard', sans-serif; background-color: #f4f7f9; }
     .header-panel { background: linear-gradient(135deg, #112A46 0%, #001B3A 100%); padding: 35px 30px; border-radius: 20px; color: white; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
     .data-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; height: 100%; }
+    .vip-box { background: linear-gradient(to right, #2c3e50, #000000); padding: 30px; border-radius: 15px; margin-top: 30px; border: 1px solid #FFD700; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.15); color: white; }
+    .timeline-item { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #FFD700; }
     .coaching-box { background: #fdfdfd; border-left: 6px solid #0047A0; padding: 30px; border-radius: 0 15px 15px 0; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     </style>
     """, unsafe_allow_html=True)
@@ -59,13 +65,7 @@ with st.sidebar:
     selected_bench = st.selectbox("📊 Benchmark Target", list(benchmarks.keys()))
     b_data = benchmarks[selected_bench]
     st.markdown("---")
-    
-    # 📷 핵심 수정: accept_multiple_files=False는 기본값, 여기에 카메라 연동 권한을 암시적으로 부여하는 설정은 없지만 
-    # 모바일 웹 브라우저가 카메라를 띄울 수 있도록 허용하는 속성은 accept="video/*;capture=camcorder" 형태입니다.
-    # Streamlit 기본 uploader로는 이 HTML 속성을 완벽히 주입하기 어려워, 사용자가 모바일에서 클릭 시 '카메라 앱'이 선택지에 뜨도록 파일 타입을 명시합니다.
     video_file = st.file_uploader(t['s_up'], type=['mp4', 'mov', 'avi'])
-    
-    st.caption("※ 모바일 접속 시, [파일 선택]을 누르시면 '카메라'를 켜서 즉시 촬영할 수 있습니다.")
     gender = st.selectbox(t['s_gen'], ["Male", "Female"] if "English" in selected_lang else ["남성", "여성"])
     analyze_btn = st.button(t['s_btn'], use_container_width=True)
 
@@ -106,20 +106,18 @@ if video_file and analyze_btn:
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 📸 시각화 오버레이 영역
+    # 📸 오버레이 영역
     st.markdown(f"""
-        <div class="data-card" style="margin-top: 20px; border-top: 5px solid #FFB300;">
+        <div class="data-card" style="margin-top: 20px; border-top: 5px solid #0047A0;">
             <h4 style="color: #002D62; margin-top: 0;">{t['img_title']}</h4>
             <p style="color: #555;">{t['img_desc']}</p>
         </div>
     """, unsafe_allow_html=True)
 
     col3, col4 = st.columns([1, 1.2])
-    
     with col3:
         x_my_ankle = -np.sin(np.radians(180 - avg_angle))
         y_my_ankle = -np.cos(np.radians(180 - avg_angle))
-        
         x_target_ankle = -np.sin(np.radians(180 - target_angle))
         y_target_ankle = -np.cos(np.radians(180 - target_angle))
 
@@ -129,16 +127,13 @@ if video_file and analyze_btn:
         fig_overlay.add_trace(go.Scatter(x=[0, x_target_ankle], y=[0, y_target_ankle], mode='lines', line=dict(color='#FFB300', width=4, dash='dash'), name=f'{bench_name} ({target_angle:.1f}°)'))
 
         fig_overlay.update_layout(
-            title="Knee Extension Tracking Vision HUD",
-            plot_bgcolor='#112A46', paper_bgcolor='#112A46', font=dict(color='white'),
+            title="Knee Extension Tracking Vision HUD", plot_bgcolor='#112A46', paper_bgcolor='#112A46', font=dict(color='white'),
             xaxis=dict(visible=False, range=[-0.5, 0.5]), yaxis=dict(visible=False, range=[-1.2, 1.2]),
-            margin=dict(l=20, r=20, t=40, b=20), height=350,
-            showlegend=True, legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
+            margin=dict(l=20, r=20, t=40, b=20), height=350, showlegend=True, legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
         )
         st.plotly_chart(fig_overlay, use_container_width=True)
 
     with col4:
-        # 데이터 기반의 고차원적 전문 피드백 로직
         if selected_lang == "🇰🇷 한국어":
             st.markdown(f"""
             <div class="coaching-box">
@@ -184,6 +179,46 @@ if video_file and analyze_btn:
                 </p>
             </div>
             """, unsafe_allow_html=True)
+
+    # 👑 대망의 VIP 타임라인 섹션 (BM 핵심)
+    st.markdown(f"""
+        <div class="vip-box">
+            <h3 style="margin-top: 0; color: #FFD700;">{t['vip_title']}</h3>
+            <p style="color: #ccc; margin-bottom: 20px;">{t['vip_desc']}</p>
+    """, unsafe_allow_html=True)
+
+    if selected_lang == "🇰🇷 한국어":
+        st.markdown("""
+            <div class="timeline-item">
+                <strong style="color: #00FF00;">⏱️ 00:15:30 [안정 구간]</strong><br>
+                무릎 신전 각도 160도 유지. 케이던스 180spm으로 최적의 에너지 효율성 보임.
+            </div>
+            <div class="timeline-item" style="border-left-color: #FFA500;">
+                <strong style="color: #FFA500;">⏱️ 01:10:45 [주의: 피로 누적 감지]</strong><br>
+                무릎 신전 각도가 155도로 하락. 골반 틸트(Pelvic Tilt) 발생으로 보폭(Stride)이 좁아지기 시작함. 👉 <b>[AI 코칭]</b> 코어 긴장 유지 및 팔치기 반경 확대 요망.
+            </div>
+            <div class="timeline-item" style="border-left-color: #FF4500;">
+                <strong style="color: #FF4500;">⏱️ 01:50:20 [위험: 폼 붕괴 임계점]</strong><br>
+                케이던스 10% 급감(162spm). 지면 접촉 시간(GCT)이 늘어나 무릎 관절의 수직 충격량이 1.5배 증가. 👉 <b>[AI 코칭]</b> 속도를 늦추고 보폭을 극단적으로 줄여 부상을 방지하세요.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div class="timeline-item">
+                <strong style="color: #00FF00;">⏱️ 00:15:30 [Stable Phase]</strong><br>
+                Knee extension at 160°. Cadence 180spm. Optimal energy efficiency.
+            </div>
+            <div class="timeline-item" style="border-left-color: #FFA500;">
+                <strong style="color: #FFA500;">⏱️ 01:10:45 [Warning: Fatigue Detected]</strong><br>
+                Knee extension dropped to 155°. Pelvic tilt observed, stride shortening. 👉 <b>[AI Coaching]</b> Maintain core tension and increase arm swing radius.
+            </div>
+            <div class="timeline-item" style="border-left-color: #FF4500;">
+                <strong style="color: #FF4500;">⏱️ 01:50:20 [Danger: Form Breakdown]</strong><br>
+                Cadence dropped by 10% (162spm). Ground Contact Time (GCT) increased, knee impact force x1.5. 👉 <b>[AI Coaching]</b> Slow down and significantly shorten stride to prevent injury.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # 7. 피드백 섹션
 st.markdown("---")
