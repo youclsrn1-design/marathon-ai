@@ -1,135 +1,159 @@
 import streamlit as st
-import cv2
-import mediapipe as mp
 import numpy as np
-import tempfile
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 
-# 1. 시스템 환경 설정
-st.set_page_config(page_title="MARATHON AI | Global Biometrics", layout="wide")
+# 1. 페이지 및 브랜딩 설정 (와이드 모드)
+st.set_page_config(page_title="MARATHON AI | PRO Analytics", layout="wide", initial_sidebar_state="expanded")
 
-# 2. 고도화된 인터페이스 디자인 (Global Blue & Patriot Red)
+# 2. 하이엔드 대시보드 전용 CSS
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
-    html, body, [class*="css"] { font-family: 'Noto+Sans+KR', sans-serif; }
-    .main { background-color: #f4f7f9; }
-    .header-container {
-        background: linear-gradient(135deg, #0047A0 0%, #002D62 100%);
-        padding: 40px; border-radius: 0 0 50px 50px; color: white; text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 30px;
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;900&display=swap');
+    html, body, [class*="css"] { font-family: 'Pretendard', sans-serif; background-color: #f0f2f6; }
+    
+    .header-panel {
+        background: linear-gradient(135deg, #0A192F 0%, #002D62 100%);
+        padding: 40px 30px; border-radius: 20px; color: white; margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: space-between;
     }
-    .taegeuk-accent {
-        height: 5px; width: 200px; margin: 20px auto;
-        background: linear-gradient(90deg, #CD2E3A 50%, #0047A0 50%);
+    .title-box h1 { margin: 0; font-size: 2.5em; font-weight: 900; letter-spacing: -1px; }
+    .title-box p { margin: 5px 0 0 0; color: #8892B0; font-size: 1.1em; letter-spacing: 1px; }
+    
+    .stTabs [data-baseweb="tab-list"] { gap: 24px; }
+    .stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: transparent; border-radius: 4px 4px 0px 0px; gap: 1px; padding-top: 10px; padding-bottom: 10px; }
+    .stTabs [aria-selected="true"] { background-color: #ffffff !important; border-bottom: 3px solid #CD2E3A !important; font-weight: bold; color: #002D62 !important; }
+    
+    .data-card {
+        background: white; padding: 25px; border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; height: 100%;
     }
-    .report-card {
-        background: white; padding: 35px; border-radius: 25px;
-        border-left: 10px solid #CD2E3A; box-shadow: 0 15px 35px rgba(0,0,0,0.08);
-    }
-    .metric-box {
-        background: #fdfdfd; border: 1px solid #eee; padding: 15px;
-        border-radius: 15px; text-align: center;
-    }
-    .stButton>button {
-        background: linear-gradient(90deg, #0047A0, #CD2E3A);
-        color: white; border: none; height: 4em; font-weight: 900; border-radius: 15px;
-    }
+    .highlight-red { color: #CD2E3A; font-weight: 700; }
+    .highlight-blue { color: #0047A0; font-weight: 700; }
     </style>
     """, unsafe_allow_html=True)
 
-# 상단 브랜딩 영역
+# 3. 상단 헤더 패널
 st.markdown("""
-    <div class="header-container">
-        <p style='font-size: 0.9em; letter-spacing: 3px;'>WORLD-CLASS BIOMETRIC ANALYSIS</p>
-        <h1 style='font-size: 3.5em; margin: 10px 0;'>🇰🇷 MARATHON AI</h1>
-        <div class="taegeuk-accent"></div>
-        <p style='font-size: 1.1em; opacity: 0.9;'>글로벌 엘리트 데이터베이스 기반 정밀 자세 역학 분석 시스템</p>
+    <div class="header-panel">
+        <div class="title-box">
+            <h1>🇰🇷 MARATHON AI PRO</h1>
+            <p>Advanced Biometric & Gait Analysis Dashboard</p>
+        </div>
+        <div style="text-align: right;">
+            <span style="background: #CD2E3A; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">Toss ID: MARATHON AI</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-col1, col2 = st.columns([1, 1.2])
+# 4. 사이드바 (입력 컨트롤)
+with st.sidebar:
+    st.markdown("### 🎥 비전 데이터 입력")
+    video_file = st.file_uploader("러닝 영상 업로드", type=['mp4', 'mov'])
+    
+    st.markdown("---")
+    st.markdown("### ⚙️ 분석 파라미터")
+    gender = st.selectbox("성별", ["남성 (Male)", "여성 (Female)"])
+    target_group = st.selectbox("비교 벤치마크", 
+        ["세계 신기록 보유자 (World Record)", "글로벌 TOP 10 평균", "대한민국 국가대표 평균"])
+    
+    st.markdown("---")
+    analyze_btn = st.button("🚀 정밀 역학 분석 실행", use_container_width=True)
 
-with col1:
-    st.markdown("### 🔍 하이테크 비전 입력")
-    # 구글 메타 스마트 안경 컨셉 이미지
-    st.image("https://images.unsplash.com/photo-1593640495253-23196b27a05f?auto=format&fit=crop&w=800&q=80", 
-             caption="Google-Meta Smart Glass Vision 동기화 완료")
-    
-    video_file = st.file_uploader("분석할 런닝 영상을 업로드하세요", type=['mp4', 'mov', 'avi'])
-    
-    with st.expander("🌐 분석 파라미터 설정"):
-        gender = st.radio("피분석자 성별", ["남성 (Male)", "여성 (Female)"], horizontal=True)
-        target_group = st.selectbox("비교 데이터셋 선택", 
-            ["세계 신기록 보유자 (Eliud Kipchoge / Tigst Assefa)", 
-             "글로벌 TOP 10 엘리트 평균", 
-             "대한민국 국가대표 육상연맹 데이터"])
-    
-    analyze_btn = st.button("전문 바이오메카닉스 정밀 분석 실행")
-
+# 5. 메인 분석 영역
 if video_file is not None and analyze_btn:
-    with st.spinner('세계 최정상급 선수들의 120개 관절 포인트 데이터와 대조 분석 중...'):
-        # 분석 알고리즘 가동 (예시 수치)
-        u_angle = np.random.normal(158, 4, 100)
-        world_avg = 168.5 if "세계" in target_group else 164.2
-        korea_avg = 162.8
+    with st.spinner('AI 딥러닝 비전 엔진이 120개 관절 프레임을 정밀 추적 중입니다...'):
+        # 가상 분석 데이터 (실제 분석 알고리즘 대체)
+        score = 82
+        metrics_categories = ['무릎 신전(Extension)', '지면접촉시간(GCT)', '수직진폭(Oscillation)', '골반 안정성(Pelvic)', '케이던스(SPM)']
+        my_stats = [75, 68, 85, 70, 80]
+        world_stats = [98, 95, 96, 99, 97]
+        korea_stats = [85, 88, 80, 85, 90]
         
-    with col2:
-        st.markdown("### 📊 정밀 역학 분석 리포트")
+        u_angle = np.random.normal(159, 3.5, 100)
         
-        # 3. 논리적/전문적 코칭 리포트
-        st.markdown(f"""
-            <div class="report-card">
-                <h2 style='color:#1e3d59; margin-bottom:5px;'>🔬 생체역학적 진단 결과</h2>
-                <p style='color:#666;'>Toss ID: MARATHON AI | 분석 ID: #WR-2026-001</p>
-                <hr>
-                <div style='display: flex; justify-content: space-around; margin: 20px 0;'>
-                    <div class="metric-box"><b>내 평균 각도</b><br><span style='font-size:1.5em; color:#CD2E3A;'>{np.mean(u_angle):.1f}°</span></div>
-                    <div class="metric-box"><b>세계 기록군</b><br><span style='font-size:1.5em; color:#0047A0;'>{world_avg}°</span></div>
-                    <div class="metric-box"><b>국내 엘리트군</b><br><span style='font-size:1.5em; color:#333;'>{korea_avg}°</span></div>
-                </div>
-                <h4 style='color:#0047A0;'>[1] 글로벌 데이터 비교 및 논리적 분석</h4>
-                <p>귀하의 <b>유효 무릎 신전(Knee Extension)</b>은 {np.mean(u_angle):.1f}도로 측정되었습니다. 이는 <b>세계 신기록 보유자 그룹 대비 약 {(world_avg - np.mean(u_angle)):.1f}도 부족</b>한 수치입니다. 
-                생체역학적으로 무릎 신전 각도의 부족은 '지면 반발력(GRF)'의 손실을 의미하며, 이는 보폭(Stride Length)의 물리적 한계를 초래합니다.</p>
-                
-                <h4 style='color:#CD2E3A;'>[2] 정밀 자세 교정 가이드</h4>
-                <p><b>● 고관절 굴곡(Hip Flexion) 최적화:</b> 세계 최정상급 선수는 유각기(Swing Phase)에서 무릎을 더 높이 리드하여 탄성 에너지를 저장합니다. 
-                현재 귀하의 폼은 대한민국 엘리트 평균과 유사하나, 세계 무대로 도약하기 위해서는 <b>골반의 전방 경사도를 3도 더 확보</b>하여 대퇴골의 가동 범위를 넓혀야 합니다.</p>
-                
-                <p><b>● 지면 접촉 시간(GCT) 손실 제어:</b> 데이터 시각화 결과, 착지 시 '브레이킹 포스'가 발생하고 있습니다. 
-                발 뒤꿈치 착지(Heel-strike)를 개선하여 <b>미드풋(Mid-foot)</b> 시스템으로 전환할 경우, 세계 기록군과의 격차를 15% 이상 단축할 수 있습니다.</p>
-                
-                <h4 style='color:#0047A0;'>[3] 구글-메타 비전 연동 코칭</h4>
-                <p>착용하신 스마트 안경의 HUD를 통해 <b>가상 고스트(World Record Ghost)</b> 기능을 활성화하세요. 
-                신기록 보유자의 실시간 케이던스를 시각적으로 추적하며 '수직 진폭'을 5cm 이내로 제어하는 훈련이 필요합니다.</p>
-            </div>
+    # 탭 구성 (시각화/데이터/솔루션 분리)
+    tab1, tab2, tab3 = st.tabs(["📊 다차원 종합 지표", "📐 관절 역학 그래프", "💡 바이오메카닉 솔루션"])
+    
+    with tab1:
+        colA, colB = st.columns([1, 1.5])
+        with colA:
+            st.markdown('<div class="data-card">', unsafe_allow_html=True)
+            st.markdown("#### 🏆 종합 퍼포먼스 스코어")
+            fig_gauge = go.Figure(go.Indicator(
+                mode = "gauge+number",
+                value = score,
+                domain = {'x': [0, 1], 'y': [0, 1]},
+                title = {'text': "Overall Biometric Score", 'font': {'size': 16}},
+                gauge = {
+                    'axis': {'range': [None, 100]},
+                    'bar': {'color': "#0047A0"},
+                    'steps': [
+                        {'range': [0, 60], 'color': "#ffe6e6"},
+                        {'range': [60, 85], 'color': "#e6f2ff"},
+                        {'range': [85, 100], 'color': "#e6ffe6"}],
+                    'threshold': {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 95}
+                }))
+            fig_gauge.update_layout(height=300, margin=dict(l=20, r=20, t=30, b=20))
+            st.plotly_chart(fig_gauge, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with colB:
+            st.markdown('<div class="data-card">', unsafe_allow_html=True)
+            st.markdown("#### 🕸️ 5대 역학 지표 벤치마크 (Radar Chart)")
+            fig_radar = go.Figure()
+            fig_radar.add_trace(go.Scatterpolar(r=my_stats, theta=metrics_categories, fill='toself', name='내 데이터', line_color='#CD2E3A'))
+            fig_radar.add_trace(go.Scatterpolar(r=world_stats, theta=metrics_categories, fill='none', name='World Record Target', line_color='#0047A0', line_dash='dash'))
+            fig_radar.add_trace(go.Scatterpolar(r=korea_stats, theta=metrics_categories, fill='none', name='Korea Elite', line_color='#888', line_dash='dot'))
+            fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=True, height=350, margin=dict(l=40, r=40, t=30, b=20))
+            st.plotly_chart(fig_radar, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab2:
+        st.markdown('<div class="data-card">', unsafe_allow_html=True)
+        st.markdown("#### 📈 프레임별 무릎 관절 가동성 (Kinematic Tracking)")
+        fig_line = go.Figure()
+        fig_line.add_trace(go.Scatter(y=u_angle, name='내 실시간 각도', line=dict(color='#CD2E3A', width=3)))
+        fig_line.add_trace(go.Scatter(y=[168.5]*100, name='World Record (168.5°)', line=dict(color='#0047A0', dash='dash')))
+        fig_line.add_trace(go.Scatter(y=[162.8]*100, name='Korea Elite (162.8°)', line=dict(color='#999', dash='dot')))
+        fig_line.update_layout(xaxis_title='분석 프레임 (Frame)', yaxis_title='무릎 신전 각도 (Degree)', height=400, margin=dict(l=20, r=20, t=30, b=20))
+        st.plotly_chart(fig_line, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab3:
+        colC, colD = st.columns([1, 1])
+        with colC:
+            st.markdown('<div class="data-card">', unsafe_allow_html=True)
+            st.markdown("#### 🔬 분석 요약 (Diagnostic Summary)")
+            st.markdown("""
+            레이더 차트 분석 결과, 귀하의 러닝 폼은 **'수직 진폭(Oscillation)'**과 **'케이던스(SPM)'** 부문에서는 우수한 수치를 보이고 있으나, 
+            <span class="highlight-red">지면 접촉 시간(GCT)</span>과 <span class="highlight-red">무릎 신전(Extension)</span>에서 글로벌 엘리트 대비 심각한 에너지 누수가 발생하고 있습니다.
+            <br><br>
+            이는 착지 시 브레이킹 포스(Braking Force)가 크게 작용하여 전진 관성을 갉아먹는 전형적인 **'오버스트라이드(Overstride)'** 형태입니다.
             """, unsafe_allow_html=True)
-        
-        # 그래프 시각화 (멀티 라인)
-        df_plot = pd.DataFrame({
-            '프레임': range(100),
-            '내 데이터': u_angle,
-            '세계 신기록 기준': [world_avg] * 100,
-            '대한민국 엘리트 기준': [korea_avg] * 100
-        })
-        
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df_plot['프레임'], y=df_plot['내 데이터'], name='내 실시간 각도', line=dict(color='#CD2E3A', width=3)))
-        fig.add_trace(go.Scatter(x=df_plot['프레임'], y=df_plot['세계 신기록 기준'], name='World Record Group', line=dict(color='#0047A0', dash='dash')))
-        fig.add_trace(go.Scatter(x=df_plot['프레임'], y=df_plot['대한민국 엘리트 기준'], name='Korea Elite Group', line=dict(color='#999', dash='dot')))
-        
-        fig.update_layout(title='프레임별 통합 역학 대조 분석 (Global vs Korea)', xaxis_title='Analysis Frame', yaxis_title='Angle (Deg)')
-        st.plotly_chart(fig, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with colD:
+            st.markdown('<div class="data-card">', unsafe_allow_html=True)
+            st.markdown("#### 🛠️ 전문 교정 프로토콜 (Actionable Plan)")
+            st.markdown("""
+            1. <span class="highlight-blue">착지점 재조정 (Mid-foot Strike):</span> 발이 몸의 무게중심보다 과도하게 앞에 떨어지지 않도록 보폭을 줄이고 케이던스를 5% 높이세요.
+            2. <span class="highlight-blue">장요근/둔근 활성화:</span> 도약기에서 엉덩이 근육을 사용하여 지면을 끝까지 밀어내는 'Push-off' 훈련을 주 2회 추가해야 합니다.
+            3. <span class="highlight-blue">골반 틸트 교정:</span> 골반이 뒤로 빠진 상태(후방경사)에서는 무릎을 160도 이상 펴기 어렵습니다. 코어 긴장을 유지하며 골반을 중립으로 세우세요.
+            """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
 else:
     st.markdown("""
-        <div style='text-align: center; padding: 100px; color: #bbb;'>
-            <h2 style='font-size: 5em;'>🏃‍♂️🌍🇰🇷</h2>
-            <p>영상을 업로드하시면 MARATHON AI의 독자적인 <br><b>'글로벌-대한민국 통합 데이터베이스'</b> 기반 정밀 진단이 시작됩니다.</p>
+        <div style='text-align: center; padding: 100px 20px; background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);'>
+            <h2 style='font-size: 2.5em; color: #002D62; margin-bottom: 10px;'>High-Performance AI Running Coach</h2>
+            <p style='font-size: 1.2em; color: #666; margin-bottom: 30px;'>좌측 사이드바에 영상을 업로드하고, 세계 최고 수준의 생체역학 정밀 분석을 경험하세요.</p>
+            <div style='display: flex; justify-content: center; gap: 30px; opacity: 0.6;'>
+                <div>📊 다차원 지표 분석</div>
+                <div>📐 관절 각도 트래킹</div>
+                <div>💡 맞춤형 교정 솔루션</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-st.markdown("---")
-st.markdown("<p style='text-align:center; color:#777;'>© 2026 MARATHON AI. Global Biometric Data Center. Powered by Toss ID: MARATHON AI</p>", unsafe_allow_html=True)
