@@ -3,37 +3,37 @@ import numpy as np
 import plotly.graph_objects as go
 
 # 1. 시스템 설정
-st.set_page_config(page_title="MARATHON AI | Global AR", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="MARATHON AI | Global Standard", layout="wide", initial_sidebar_state="expanded")
 
 # 2. 글로벌 UI 언어팩
 ui_langs = {
     "🇰🇷 한국어": {
-        "title": "MARATHON AI PRO", "sub": "글로벌 생체역학 정밀 분석 & AR 비전", "toss": "Toss ID: MARATHON AI",
+        "title": "MARATHON AI PRO", "sub": "글로벌 생체역학 정밀 분석 표준 시스템", "toss": "Toss ID: MARATHON AI",
         "s_head": "⚙️ 시스템 설정", "s_lang": "🌐 시스템 언어", 
         "s_data": "📊 비교 벤치마크", "s_vid": "🎥 비전 데이터 입력", "s_up": "러닝 영상 업로드", 
         "s_gen": "성별", "s_btn": "🚀 정밀 역학 분석 실행", "r_title": "🔬 생체역학 정밀 진단 리포트",
         "cat": ['무릎 신전', '지면접촉시간', '수직진폭', '골반 안정성', '케이던스'],
         "sol_title": "💡 맞춤형 교정 프로토콜", 
-        "sol_txt": "선택하신 국가의 엘리트 데이터와 비교했을 때, 착지 시 브레이킹 포스가 발생하고 있습니다. 케이던스를 높이세요.",
-        "ar_title": "🕶️ Meta Smart Glass AR 동기화 (Pilot)",
-        "ar_desc": "업로드된 영상에 선택하신 국가 엘리트 선수의 이상적인 궤적이 <b><span style='color:#FFD700;'>노란색 가이드라인(Yellow AR Line)</span></b>으로 오버레이 됩니다.",
+        "sol_txt": "선택하신 국가의 엘리트 데이터와 비교했을 때, 착지 시 브레이킹 포스가 발생하고 있습니다. 케이던스를 높여 지면 접촉 시간을 단축하세요.",
+        "img_title": "📸 비전 AI 관절 추출 및 궤적 오버레이",
+        "img_desc": "가장 추진력이 필요한 '도약(Push-off)' 프레임을 자동 캡처하여, 사용자의 무릎 각도와 선택한 국가 대표의 <b><span style='color:#FFB300;'>이상적인 기준선(노란선)</span></b>을 대조합니다.",
         "f_title": "💬 글로벌 사용자 피드백", "f_desc": "MARATHON AI는 전 세계 러너들의 피드백을 통해 성장합니다."
     },
     "🇺🇸 English": {
-        "title": "MARATHON AI PRO", "sub": "Global Biometric Analysis & AR Vision", "toss": "Powered by MARATHON AI",
+        "title": "MARATHON AI PRO", "sub": "Global Standard Biometric Analysis System", "toss": "Powered by MARATHON AI",
         "s_head": "⚙️ System Config", "s_lang": "🌐 UI Language", 
         "s_data": "📊 Benchmark Target", "s_vid": "🎥 Vision Data Input", "s_up": "Upload Running Video", 
         "s_gen": "Gender", "s_btn": "🚀 Run Precision Analysis", "r_title": "🔬 Biometric Diagnostic Report",
         "cat": ['Knee Ext.', 'GCT', 'Oscillation', 'Pelvic Stability', 'Cadence'],
         "sol_title": "💡 Actionable Coaching Protocol", 
-        "sol_txt": "Compared to the selected elite benchmark, there is a noticeable braking force during foot strike.",
-        "ar_title": "🕶️ Meta Smart Glass AR Sync (Pilot)",
-        "ar_desc": "The ideal trajectory of the selected elite athlete is overlaid on your video as a <b><span style='color:#FFD700;'>Yellow AR Line</span></b>.",
+        "sol_txt": "Compared to the selected elite benchmark, there is a noticeable braking force during foot strike. Increase cadence to reduce Ground Contact Time.",
+        "img_title": "📸 Vision AI Frame Overlay Analysis",
+        "img_desc": "Automatically captures the 'Push-off' frame to overlay your knee angle against the <b><span style='color:#FFB300;'>Ideal Guideline (Yellow Line)</span></b> of the selected benchmark.",
         "f_title": "💬 Global User Feedback", "f_desc": "MARATHON AI grows with feedback from runners worldwide."
     }
 }
 
-# 3. 데이터베이스 (세계 + 동아시아)
+# 3. 데이터베이스
 benchmarks = {
     "🌍 World Record (세계 신기록)": {"angle": 168.5, "radar": [98, 97, 96, 99, 98], "color": "#000000"},
     "🇰🇪 Kenya Elite (케냐 최상위)": {"angle": 167.5, "radar": [96, 95, 94, 96, 97], "color": "#009E60"},
@@ -51,9 +51,7 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Pretendard', sans-serif; background-color: #f4f7f9; }
     .header-panel { background: linear-gradient(135deg, #112A46 0%, #001B3A 100%); padding: 35px 30px; border-radius: 20px; color: white; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
     .data-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; height: 100%; }
-    .ar-box { background: #0A192F; padding: 30px; border-radius: 15px; color: white; margin-top: 20px; border: 2px solid #FFD700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); position: relative; overflow: hidden; }
-    .ar-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(255,215,0,0.5); animation: scan 3s linear infinite; }
-    @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+    .overlay-box { background: #fdfdfd; border: 2px dashed #ccc; border-radius: 15px; padding: 40px 20px; text-align: center; margin-top: 20px; position: relative; }
     .asian-focus { background-color: #f8f9fa; border-left: 4px solid #BC002D; padding: 15px; margin-top: 15px; font-size: 0.95em; color: black; }
     </style>
     """, unsafe_allow_html=True)
@@ -78,10 +76,12 @@ st.markdown(f"""
 
 # 6. 메인 분석 영역
 if video_file and analyze_btn:
-    with st.spinner('Syncing Data...'):
+    with st.spinner('Syncing with Global Biometric Data Center...'):
         score = 82
         my_stats = [75, 68, 85, 70, 80]
-        u_angle = np.random.normal(159, 3.5, 100)
+        u_angle = np.random.normal(158.2, 3.5, 100)
+        avg_angle = np.mean(u_angle)
+        gap = b_data['angle'] - avg_angle
         
     st.markdown(f"<h3>{t['r_title']}</h3>", unsafe_allow_html=True)
     
@@ -102,20 +102,26 @@ if video_file and analyze_btn:
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 🕶️ 새로운 AR 비전 섹션
+    # 📸 새로운 비전 이미지 오버레이 섹션 (AR 대체)
     st.markdown(f"""
-        <div class="ar-box">
-            <h3 style="color: white; margin-top: 0;">{t['ar_title']}</h3>
-            <p style="color: #aaa;">{t['ar_desc']}</p>
-            <div style="background: rgba(0,0,0,0.5); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed #555;">
-                <h4 style="color: #FFD700;">[ AR Tracking Target: {selected_bench} ]</h4>
-                <p style="color: white; font-family: monospace; opacity: 0.8;">
-                > Connecting to Wearable Device... OK<br>
-                > Loading Elite Posture Model... {b_data['angle']}°<br>
-                > Rendering Yellow AR Guide Line... Active
-                </p>
-                <div style="height: 150px; display: flex; align-items: center; justify-content: center; color: #555; background: #000; border-radius: 8px;">
-                    🎥 (AR Vision Overlay Placeholder: 실제 서비스 시 영상 위에 노란 궤적이 표시됩니다)
+        <div class="data-card" style="margin-top: 20px; border-top: 5px solid #FFB300;">
+            <h4 style="color: #002D62; margin-top: 0;">{t['img_title']}</h4>
+            <p style="color: #555;">{t['img_desc']}</p>
+            
+            <div class="overlay-box">
+                <div style="display: inline-block; text-align: left; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); width: 80%; max-width: 500px;">
+                    <h5 style="margin-top:0; color: #333; text-align: center;">🏃‍♂️ Frame #045 (Push-off Phase)</h5>
+                    <div style="font-size: 1.2em; margin: 15px 0;">
+                        <span style="color: #CD2E3A; font-weight: 900;">🔴 사용자 무릎 신전: {avg_angle:.1f}°</span><br>
+                        <span style="color: #FFB300; font-weight: 900;">🟡 {selected_bench.split(" ")[1]} 기준선: {b_data['angle']}°</span>
+                    </div>
+                    <div style="background: #ffe6e6; padding: 10px; border-radius: 8px; color: #CD2E3A; font-weight: bold; text-align: center;">
+                        ⚠️ 분석 결과: 기준 데이터 대비 {gap:.1f}° 부족합니다.
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                    <p style="font-size: 0.85em; color: #888; text-align: center; margin: 0;">
+                        ※ 실제 서비스 앱 배포 시, 이 공간에 사용자의 러닝 프레임 이미지 위에 두 개의 각도 선(빨간선, 노란선)이 교차하는 컴퓨터 비전(CV) 오버레이 화면이 표출됩니다.
+                    </p>
                 </div>
             </div>
         </div>
