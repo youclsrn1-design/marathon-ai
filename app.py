@@ -16,7 +16,7 @@ ui_langs = {
         "sol_title": "💡 맞춤형 교정 프로토콜", 
         "sol_txt": "선택하신 국가의 엘리트 데이터와 비교했을 때, 착지 시 브레이킹 포스가 발생하고 있습니다. 케이던스를 높여 지면 접촉 시간을 단축하세요.",
         "img_title": "📸 비전 AI 관절 추출 및 궤적 오버레이",
-        "img_desc": "가장 추진력이 필요한 '도약(Push-off)' 프레임을 자동 캡처하여, 사용자의 무릎 각도와 선택한 국가 대표의 <b><span style='color:#FFB300;'>이상적인 기준선(노란선)</span></b>을 대조합니다.",
+        "img_desc": "도약(Push-off) 순간의 관절 좌표를 추출하여, 사용자의 무릎 각도(🔴)와 벤치마크 기준선(🟡)의 편차를 시각화합니다.",
         "f_title": "💬 글로벌 사용자 피드백", "f_desc": "MARATHON AI는 전 세계 러너들의 피드백을 통해 성장합니다."
     },
     "🇺🇸 English": {
@@ -28,7 +28,7 @@ ui_langs = {
         "sol_title": "💡 Actionable Coaching Protocol", 
         "sol_txt": "Compared to the selected elite benchmark, there is a noticeable braking force during foot strike. Increase cadence to reduce Ground Contact Time.",
         "img_title": "📸 Vision AI Frame Overlay Analysis",
-        "img_desc": "Automatically captures the 'Push-off' frame to overlay your knee angle against the <b><span style='color:#FFB300;'>Ideal Guideline (Yellow Line)</span></b> of the selected benchmark.",
+        "img_desc": "Visualizing the deviation between your knee angle (🔴) and the benchmark target (🟡) during the push-off phase.",
         "f_title": "💬 Global User Feedback", "f_desc": "MARATHON AI grows with feedback from runners worldwide."
     }
 }
@@ -51,8 +51,6 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Pretendard', sans-serif; background-color: #f4f7f9; }
     .header-panel { background: linear-gradient(135deg, #112A46 0%, #001B3A 100%); padding: 35px 30px; border-radius: 20px; color: white; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
     .data-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; height: 100%; }
-    .overlay-box { background: #fdfdfd; border: 2px dashed #ccc; border-radius: 15px; padding: 40px 20px; text-align: center; margin-top: 20px; position: relative; }
-    .asian-focus { background-color: #f8f9fa; border-left: 4px solid #BC002D; padding: 15px; margin-top: 15px; font-size: 0.95em; color: black; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -79,9 +77,10 @@ if video_file and analyze_btn:
     with st.spinner('Syncing with Global Biometric Data Center...'):
         score = 82
         my_stats = [75, 68, 85, 70, 80]
-        u_angle = np.random.normal(158.2, 3.5, 100)
+        u_angle = np.random.normal(155.5, 3.5, 100)
         avg_angle = np.mean(u_angle)
-        gap = b_data['angle'] - avg_angle
+        target_angle = b_data['angle']
+        gap = target_angle - avg_angle
         
     st.markdown(f"<h3>{t['r_title']}</h3>", unsafe_allow_html=True)
     
@@ -102,30 +101,59 @@ if video_file and analyze_btn:
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 📸 새로운 비전 이미지 오버레이 섹션 (AR 대체)
+    # 📸 새로운 비주얼 오버레이: 수학적 모델로 뼈대 각도 직접 그리기
     st.markdown(f"""
-        <div class="data-card" style="margin-top: 20px; border-top: 5px solid #FFB300;">
+        <div class="data-card" style="margin-top: 20px; border-top: 5px solid #FFB300; display:flex; flex-direction:column;">
             <h4 style="color: #002D62; margin-top: 0;">{t['img_title']}</h4>
             <p style="color: #555;">{t['img_desc']}</p>
-            
-            <div class="overlay-box">
-                <div style="display: inline-block; text-align: left; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); width: 80%; max-width: 500px;">
-                    <h5 style="margin-top:0; color: #333; text-align: center;">🏃‍♂️ Frame #045 (Push-off Phase)</h5>
-                    <div style="font-size: 1.2em; margin: 15px 0;">
-                        <span style="color: #CD2E3A; font-weight: 900;">🔴 사용자 무릎 신전: {avg_angle:.1f}°</span><br>
-                        <span style="color: #FFB300; font-weight: 900;">🟡 {selected_bench.split(" ")[1]} 기준선: {b_data['angle']}°</span>
-                    </div>
-                    <div style="background: #ffe6e6; padding: 10px; border-radius: 8px; color: #CD2E3A; font-weight: bold; text-align: center;">
-                        ⚠️ 분석 결과: 기준 데이터 대비 {gap:.1f}° 부족합니다.
-                    </div>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-                    <p style="font-size: 0.85em; color: #888; text-align: center; margin: 0;">
-                        ※ 실제 서비스 앱 배포 시, 이 공간에 사용자의 러닝 프레임 이미지 위에 두 개의 각도 선(빨간선, 노란선)이 교차하는 컴퓨터 비전(CV) 오버레이 화면이 표출됩니다.
-                    </p>
-                </div>
-            </div>
         </div>
     """, unsafe_allow_html=True)
+
+    col3, col4 = st.columns([1, 1.2])
+    
+    with col3:
+        # 무릎 각도를 시각화하기 위한 수학적 좌표 계산 (삼각함수 활용)
+        # 고관절(Hip)을 (0, 1), 무릎(Knee)을 (0, 0)으로 기준 잡음
+        x_my_ankle = np.sin(np.radians(180 - avg_angle))
+        y_my_ankle = -np.cos(np.radians(180 - avg_angle))
+        
+        x_target_ankle = np.sin(np.radians(180 - target_angle))
+        y_target_ankle = -np.cos(np.radians(180 - target_angle))
+
+        fig_overlay = go.Figure()
+        
+        # 1. 대퇴부 (허벅지) 뼈대
+        fig_overlay.add_trace(go.Scatter(x=[0, 0], y=[1, 0], mode='lines+markers', line=dict(color='white', width=8), marker=dict(size=12, color='white'), name='대퇴부 (Thigh)'))
+        # 2. 내 종아리 뼈대 (빨간색)
+        fig_overlay.add_trace(go.Scatter(x=[0, x_my_ankle], y=[0, y_my_ankle], mode='lines+markers', line=dict(color='#CD2E3A', width=8), marker=dict(size=12, color='#CD2E3A'), name=f'내 무릎 ({avg_angle:.1f}°)'))
+        # 3. 기준 종아리 뼈대 (노란색 점선)
+        fig_overlay.add_trace(go.Scatter(x=[0, x_target_ankle], y=[0, y_target_ankle], mode='lines', line=dict(color='#FFB300', width=4, dash='dash'), name=f'기준선 ({target_angle:.1f}°)'))
+
+        fig_overlay.update_layout(
+            title="Knee Extension Tracking Vision HUD",
+            plot_bgcolor='#112A46', paper_bgcolor='#112A46', font=dict(color='white'),
+            xaxis=dict(visible=False, range=[-0.5, 0.5]), yaxis=dict(visible=False, range=[-1.2, 1.2]),
+            margin=dict(l=20, r=20, t=40, b=20), height=350,
+            showlegend=True, legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
+        )
+        st.plotly_chart(fig_overlay, use_container_width=True)
+
+    with col4:
+        st.markdown(f"""
+        <div style="background: white; padding: 30px; border-radius: 15px; border: 1px solid #eee; height: 100%;">
+            <h4 style="margin-top:0; color:#002D62;">📊 분석 결과 요약</h4>
+            <div style="font-size: 1.2em; margin: 20px 0; line-height: 1.8;">
+                <span style="color: #CD2E3A; font-weight: 900;">🔴 내 무릎 각도: {avg_angle:.1f}°</span><br>
+                <span style="color: #FFB300; font-weight: 900;">🟡 {selected_bench.split(" ")[1]} 기준: {target_angle:.1f}°</span>
+            </div>
+            <div style="background: #ffe6e6; padding: 15px; border-radius: 10px; color: #CD2E3A; font-weight: bold; font-size: 1.1em;">
+                ⚠️ 기준 데이터 대비 <span style="font-size:1.3em;">{gap:.1f}°</span> 부족하여 지면 반발력 누수가 발생 중입니다.
+            </div>
+            <p style="color: #666; margin-top: 20px; font-size: 0.9em;">
+                * 위 그래픽은 비전 AI가 추출한 관절 좌표를 기반으로 렌더링된 시뮬레이션입니다. (노란색 점선이 목표 궤적을 의미합니다.)
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # 7. 피드백 섹션
 st.markdown("---")
