@@ -5,12 +5,12 @@ import plotly.graph_objects as go
 # 1. 시스템 설정
 st.set_page_config(page_title="MARATHON AI | Global Standard", layout="wide", initial_sidebar_state="expanded")
 
-# 2. 글로벌 UI 언어팩 (기본 뼈대)
+# 2. 글로벌 UI 언어팩
 ui_langs = {
     "🇰🇷 한국어": {
         "title": "MARATHON AI PRO", "sub": "글로벌 생체역학 정밀 분석 표준 시스템", "toss": "Toss ID: MARATHON AI",
         "s_head": "⚙️ 시스템 설정", "s_lang": "🌐 시스템 언어", 
-        "s_data": "📊 비교 벤치마크", "s_vid": "🎥 비전 데이터 입력", "s_up": "러닝 영상 업로드 (10초 이내 측면 영상 권장)", 
+        "s_data": "📊 비교 벤치마크", "s_vid": "🎥 비전 데이터 입력", "s_up": "러닝 영상 촬영 또는 업로드 (10초 이내 측면 영상 권장)", 
         "s_gen": "성별", "s_btn": "🚀 정밀 역학 분석 실행", "r_title": "🔬 생체역학 정밀 진단 리포트",
         "cat": ['무릎 신전', '지면접촉시간', '수직진폭', '골반 안정성', '케이던스'],
         "img_title": "📸 비전 AI 관절 추출 및 궤적 오버레이",
@@ -20,7 +20,7 @@ ui_langs = {
     "🇺🇸 English": {
         "title": "MARATHON AI PRO", "sub": "Global Standard Biometric Analysis System", "toss": "Powered by MARATHON AI",
         "s_head": "⚙️ System Config", "s_lang": "🌐 UI Language", 
-        "s_data": "📊 Benchmark Target", "s_vid": "🎥 Vision Data Input", "s_up": "Upload Video (Max 10s side-view)", 
+        "s_data": "📊 Benchmark Target", "s_vid": "🎥 Vision Data Input", "s_up": "Record or Upload Video (Max 10s side-view)", 
         "s_gen": "Gender", "s_btn": "🚀 Run Precision Analysis", "r_title": "🔬 Biometric Diagnostic Report",
         "cat": ['Knee Ext.', 'GCT', 'Oscillation', 'Pelvic Stability', 'Cadence'],
         "img_title": "📸 Vision AI Frame Overlay Analysis",
@@ -59,8 +59,13 @@ with st.sidebar:
     selected_bench = st.selectbox("📊 Benchmark Target", list(benchmarks.keys()))
     b_data = benchmarks[selected_bench]
     st.markdown("---")
-    video_file = st.file_uploader(t['s_up'], type=['mp4', 'mov'])
-    st.caption("※ 분석 최적화를 위해 10초 이내의 하이라이트 구간 업로드를 권장합니다.")
+    
+    # 📷 핵심 수정: accept_multiple_files=False는 기본값, 여기에 카메라 연동 권한을 암시적으로 부여하는 설정은 없지만 
+    # 모바일 웹 브라우저가 카메라를 띄울 수 있도록 허용하는 속성은 accept="video/*;capture=camcorder" 형태입니다.
+    # Streamlit 기본 uploader로는 이 HTML 속성을 완벽히 주입하기 어려워, 사용자가 모바일에서 클릭 시 '카메라 앱'이 선택지에 뜨도록 파일 타입을 명시합니다.
+    video_file = st.file_uploader(t['s_up'], type=['mp4', 'mov', 'avi'])
+    
+    st.caption("※ 모바일 접속 시, [파일 선택]을 누르시면 '카메라'를 켜서 즉시 촬영할 수 있습니다.")
     gender = st.selectbox(t['s_gen'], ["Male", "Female"] if "English" in selected_lang else ["남성", "여성"])
     analyze_btn = st.button(t['s_btn'], use_container_width=True)
 
@@ -101,7 +106,7 @@ if video_file and analyze_btn:
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 📸 수정된 비주얼 오버레이: 방향 일치 (우측 진행 러너 기준)
+    # 📸 시각화 오버레이 영역
     st.markdown(f"""
         <div class="data-card" style="margin-top: 20px; border-top: 5px solid #FFB300;">
             <h4 style="color: #002D62; margin-top: 0;">{t['img_title']}</h4>
@@ -112,9 +117,6 @@ if video_file and analyze_btn:
     col3, col4 = st.columns([1, 1.2])
     
     with col3:
-        # 수학적 좌표 계산 수정: 러너가 오른쪽으로 달리고 있으므로,
-        # 도약(Push-off)하는 뒷다리는 고관절(0,1)과 무릎(0,0)을 기준으로 '왼쪽(-x) 방향'으로 뻗어야 함.
-        # 따라서 x좌표에 마이너스(-)를 곱해 축을 반전시켰습니다.
         x_my_ankle = -np.sin(np.radians(180 - avg_angle))
         y_my_ankle = -np.cos(np.radians(180 - avg_angle))
         
@@ -122,16 +124,12 @@ if video_file and analyze_btn:
         y_target_ankle = -np.cos(np.radians(180 - target_angle))
 
         fig_overlay = go.Figure()
-        
-        # 1. 대퇴부 (허벅지) 뼈대
         fig_overlay.add_trace(go.Scatter(x=[0, 0], y=[1, 0], mode='lines+markers', line=dict(color='white', width=8), marker=dict(size=12, color='white'), name='대퇴부 (Thigh)'))
-        # 2. 내 종아리 뼈대 (빨간색)
         fig_overlay.add_trace(go.Scatter(x=[0, x_my_ankle], y=[0, y_my_ankle], mode='lines+markers', line=dict(color='#CD2E3A', width=8), marker=dict(size=12, color='#CD2E3A'), name=f'내 무릎 ({avg_angle:.1f}°)'))
-        # 3. 기준 종아리 뼈대 (노란색 점선)
         fig_overlay.add_trace(go.Scatter(x=[0, x_target_ankle], y=[0, y_target_ankle], mode='lines', line=dict(color='#FFB300', width=4, dash='dash'), name=f'{bench_name} ({target_angle:.1f}°)'))
 
         fig_overlay.update_layout(
-            title="Knee Extension Tracking Vision HUD (Right-bound Runner)",
+            title="Knee Extension Tracking Vision HUD",
             plot_bgcolor='#112A46', paper_bgcolor='#112A46', font=dict(color='white'),
             xaxis=dict(visible=False, range=[-0.5, 0.5]), yaxis=dict(visible=False, range=[-1.2, 1.2]),
             margin=dict(l=20, r=20, t=40, b=20), height=350,
