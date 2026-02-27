@@ -4,5 +4,7 @@ mediapipe
 numpy
 pandas
 plotly
+opencv-python-headless
+mediapipe
 
 
