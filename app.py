@@ -24,7 +24,7 @@ ui_langs = {
     }
 }
 
-# 3. 🏟️ 육상 전 종목 카테고리 및 동적 평가지표 설계
+# 3. 🏟️ 육상 전 종목 카테고리
 categories = {
     "트랙 (Track: 달리기/허들)": {
         "metrics": ['무릎 신전(Knee Ext)', '지면접촉시간(GCT)', '수직진폭(Oscillation)', '골반 밸런스(Pelvic)', '상하체 동기화(Arm Sync)'],
@@ -133,80 +133,124 @@ if video_file and analyze_btn:
 
     with col4:
         st.markdown('<div class="coaching-box" style="margin-top: 25px;">', unsafe_allow_html=True)
-        tab_pro, tab_easy = st.tabs(["🎓 심화 역학 진단 및 훈련 프로토콜", "🎈 AI 핵심 큐잉"])
+        tab_pro, tab_easy = st.tabs(["🎓 심화 역학 진단 (전문가용)", "🎈 AI 놀이 훈련법 (어린이용)"])
         
-        # 💡 종목별 '국가대표급' 논리적 피드백 생성 로직
+        # 💡 종목별 피드백 (어린이 놀이 훈련법 대폭 강화)
         if "단거리" in selected_sport or "스프린트" in selected_sport:
             with tab_pro:
                 st.markdown(f"""
-                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">🚀 스프린트(Sprint): 지면 발진력 및 SSC 분석</h4>
+                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">🚀 스프린트(Sprint): 지면 발진력 분석</h4>
                 <p style="font-size: 0.95em; color: #3C4043; line-height: 1.6;">
-                    <b>[Kinematic Diagnosis]</b> 도약(Take-off) 페이즈 시 최대 무릎 신전 각도가 <span class="highlight-text">{avg_angle}°</span>에 그쳐, 엘리트 벤치마크 대비 <span class="highlight-text">{gap:.1f}°의 조기 회수(Early Recovery)</span>가 관찰됩니다.<br><br>
-                    <b>[Kinetic Impact]</b> 지면접촉시간(GCT)이 지연되고 발목 배측굴곡(Dorsiflexion)이 무너지며, 아킬레스건의 <b>SSC(신장-단축 주기, Stretch-Shortening Cycle)</b> 에너지가 전진 가속도로 100% 전환되지 못하는 전형적인 힘의 누수(Force Leakage) 상태입니다.
+                    도약(Take-off) 시 최대 무릎 신전 각도가 <span class="highlight-text">{avg_angle}°</span>에 그쳐, 엘리트 벤치마크 대비 <span class="highlight-text">{gap:.1f}°의 조기 회수</span>가 관찰됩니다.<br>
+                    지면접촉시간(GCT)이 지연되며, 아킬레스건의 <b>SSC(신장-단축 주기)</b> 에너지가 전진 가속도로 100% 전환되지 못하고 있습니다.
                 </p>
                 <div style="font-size: 0.92em; color: #202124; background: #E8F0FE; padding: 15px; border-radius: 8px; border: 1px solid #D2E3FC; margin-top: 15px;">
-                    <b>[훈련 교정 프로토콜 - Protocol Phase 1~3]</b><br>
-                    1. <b>플라이오메트릭(Plyometric):</b> 뎁스 점프(Depth Jump)를 통한 발목/건의 반응 강성(Stiffness) 극대화<br>
-                    2. <b>지면 타격 훈련:</b> A-Skip 수행 시, 발바닥 전체가 아닌 '전족부(Forefoot)'로 수직 하강 타격 제어<br>
-                    3. <b>동기화:</b> 지면을 차고 나가는 순간, 반대쪽 팔꿈치의 하향/후방 스윙(Arm Drive)을 1:1로 매칭
+                    <b>[전문 훈련 프로토콜]</b><br>
+                    1. 플라이오메트릭(Plyometric): 뎁스 점프를 통한 발목 반응성 극대화<br>
+                    2. 지면 타격: 전족부(Forefoot) 수직 하강 제어<br>
+                    3. 동기화: 팔꿈치 후방 스윙과 지면 발진의 1:1 매칭
                 </div>
                 """, unsafe_allow_html=True)
             with tab_easy:
-                st.markdown("<b>'발끝으로 쾅! 치타처럼 튀어 나가세요!'</b><br>발이 땅에 닿는 시간을 최소한으로 줄여야 합니다. 뒤꿈치가 땅에 닿기 전에 앞꿈치로 트랙을 부수듯 밀어내세요.")
+                st.markdown(f"""
+                <h4 style="color:#FF6B6B; margin-top:10px; margin-bottom:15px;">🐆 치타처럼 쌩~ 날아가는 놀이법!</h4>
+                <p style="font-size: 1.05em; color: #3C4043; line-height: 1.5;">
+                    달릴 때 발바닥이 땅에 오래 붙어있으면 속도가 느려져요! <b>발 앞꿈치로만 땅을 살짝 밟고 로켓처럼 튕겨 올라가는 연습</b>을 해볼까요?
+                </p>
+                <div style="background: #FFF0ED; padding: 18px; border-radius: 12px; border: 2px dashed #FFD4CC; margin-top: 15px;">
+                    <b style="color:#D93025; font-size:1.1em;">🔥 오늘의 미션: 뜨거운 용암 밟기 놀이!</b><br><br>
+                    <b>1단계:</b> 운동장 바닥이 <b>'앗 뜨거워! 용암'</b>이라고 상상해 봐요.<br>
+                    <b>2단계:</b> 발이 용암에 데이지 않게, 뒤꿈치는 들고 앞꿈치로만 <b>'앗 뜨거!' 하면서 0.1초 만에 발을 들어 올리며</b> 뛰어보세요.<br>
+                    <b>3단계:</b> 발을 빨리 뗄 때 팔꿈치도 뒤로 <b>'휙!'</b> 쳐주면 치타 완성!
+                </div>
+                """, unsafe_allow_html=True)
         
         elif "마라톤" in selected_sport:
             with tab_pro:
                 st.markdown(f"""
-                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">🏃‍♂️ 마라톤(Marathon): 에너지 효율 및 GRF 분석</h4>
+                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">🏃‍♂️ 마라톤(Marathon): 에너지 효율 분석</h4>
                 <p style="font-size: 0.95em; color: #3C4043; line-height: 1.6;">
-                    <b>[Kinematic Diagnosis]</b> 도약(Push-off) 시 고관절 및 무릎의 완전 신전(Triple Extension)이 이루어지지 않아 <span class="highlight-text">{gap:.1f}°의 편차</span>가 발생하고 있습니다.<br><br>
-                    <b>[Kinetic Impact]</b> 중둔근 약화 및 골반 드롭(Pelvic Drop) 현상이 결합되어, <b>지면반발력(GRF) 벡터</b>가 전진(수평)이 아닌 수직으로 분산(수직진폭 상승)되고 있습니다. 장거리 러닝 시 햄스트링에 과부하를 초래하는 비효율적 메커니즘입니다.
+                    도약 시 고관절 및 무릎의 완전 신전이 이루어지지 않아 <span class="highlight-text">{gap:.1f}°의 편차</span>가 발생하고 있습니다.<br>
+                    골반 드롭 현상으로 인해 <b>지면반발력(GRF) 벡터</b>가 수직으로 분산(수직진폭 상승)되어 햄스트링에 과부하를 초래합니다.
                 </p>
                 <div style="font-size: 0.92em; color: #202124; background: #F8F9FA; padding: 15px; border-radius: 8px; border: 1px solid #E8EAED; margin-top: 15px;">
-                    <b>[훈련 교정 프로토콜 - Protocol Phase 1~3]</b><br>
-                    1. <b>가동성(Mobility):</b> 장요근 동적 스트레칭을 통한 고관절 후방 신전 가동 범위 확보<br>
-                    2. <b>코어 안정화:</b> 싱글 레그 데드리프트(Unilateral)를 통한 중둔근 좌우 밸런스 및 골반 롤링 제어<br>
-                    3. <b>신경계 큐잉:</b> 발볼(중족골)을 끝까지 활용하는 'Full Toe-off' 인지 훈련
+                    <b>[전문 훈련 프로토콜]</b><br>
+                    1. 가동성: 장요근 동적 스트레칭으로 고관절 후방 가동 범위 확보<br>
+                    2. 코어 안정화: 싱글 레그 데드리프트를 통한 골반 롤링 제어<br>
+                    3. 신경계 큐잉: 발볼을 끝까지 활용하는 'Full Toe-off' 인지
                 </div>
                 """, unsafe_allow_html=True)
             with tab_easy:
-                st.markdown("<b>'위아래로 뛰지 말고, 앞으로 밀고 나가세요!'</b><br>다리를 끝까지 펴주지 않으면 콩콩 뛰게 됩니다. 보폭을 넓히려고 하지 말고, 뒷발로 땅을 끝까지 부드럽게 밀어주세요.")
+                st.markdown(f"""
+                <h4 style="color:#4CAF50; margin-top:10px; margin-bottom:15px;">🥷 소리 없이 달리는 닌자 놀이법!</h4>
+                <p style="font-size: 1.05em; color: #3C4043; line-height: 1.5;">
+                    오래 달릴 때 쿵쾅쿵쾅 뛰면 에너지가 빨리 닳고 무릎이 아파요. <b>위아래로 흔들리지 않고 미끄러지듯 부드럽게</b> 달리는 연습을 해봐요.
+                </p>
+                <div style="background: #E8F5E9; padding: 18px; border-radius: 12px; border: 2px dashed #C8E6C9; margin-top: 15px;">
+                    <b style="color:#2E7D32; font-size:1.1em;">💧 오늘의 미션: 머리 위 물컵 지키기!</b><br><br>
+                    <b>1단계:</b> 머리 위에 <b>'가득 찬 물컵'</b>이 올려져 있다고 상상하세요.<br>
+                    <b>2단계:</b> 쿵쾅거리면 물이 쏟아져요! 보폭을 너무 크게 하지 말고, <b>자전거 페달을 둥글게 돌리듯 발을 굴려보세요.</b><br>
+                    <b>3단계:</b> 뒤에서 누군가 날 밀어주는 것처럼 상체를 살짝 앞으로 숙이고 닌자처럼 사뿐사뿐 달리면 성공!
+                </div>
+                """, unsafe_allow_html=True)
         
         elif "Jump" in selected_cat:
             with tab_pro:
                 st.markdown(f"""
-                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">🦘 도약(Jump): 발구름(Take-off) 메커니즘 분석</h4>
+                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">🦘 도약(Jump): 발구름(Take-off) 분석</h4>
                 <p style="font-size: 0.95em; color: #3C4043; line-height: 1.6;">
-                    <b>[Kinematic Diagnosis]</b> 도약 전 마지막 두 걸음(Penultimate Step)에서 무게중심(COM)의 하강비가 벤치마크 대비 부족하여 발구름 각도가 <span class="highlight-text">{avg_angle}°</span>에 머물렀습니다.<br><br>
-                    <b>[Kinetic Impact]</b> 축적된 수평 <b>진입 속도(Approach Velocity)</b>가 수직 충격량(Vertical Impulse)으로 전환되는 효율이 15% 이상 저하되었습니다. 지면반발력의 작용선이 COM을 정확히 관통하지 못하는 상태입니다.
+                    마지막 두 걸음(Penultimate Step)에서 무게중심 하강비가 부족하여 발구름 각도가 <span class="highlight-text">{avg_angle}°</span>에 머물렀습니다.<br>
+                    수평 <b>진입 속도(Approach Velocity)</b>가 수직 충격량으로 전환되는 효율이 떨어져 에너지 누수가 발생합니다.
                 </p>
                 <div style="font-size: 0.92em; color: #202124; background: #F4FBF8; padding: 15px; border-radius: 8px; border: 1px solid #CEEBE0; margin-top: 15px;">
-                    <b>[훈련 교정 프로토콜 - Protocol Phase 1~3]</b><br>
-                    1. <b>힌지 제어:</b> 페널티메이트 스텝 시 고관절 힌지(Hinge)를 통한 의도적 COM 하강 훈련<br>
-                    2. <b>아모티제이션(Amortization):</b> 도약 발의 지면 접촉 시간 최소화 및 족저근막 탄성 에너지 방출 훈련<br>
-                    3. <b>상향 스윙:</b> 체공 시간 확보를 위해 리드 암(Arm)과 리드 레그의 폭발적인 상향 구동 매칭
+                    <b>[전문 훈련 프로토콜]</b><br>
+                    1. 힌지 제어: 페널티메이트 스텝 시 의도적 무게중심 하강 훈련<br>
+                    2. 아모티제이션: 지면 접촉 시간 최소화 및 족저근막 탄성 방출<br>
+                    3. 상향 스윙: 리드 암과 리드 레그의 폭발적인 상향 구동 매칭
                 </div>
                 """, unsafe_allow_html=True)
             with tab_easy:
-                st.markdown("<b>'마지막 두 걸음에서 살짝 낮추고 폭발하세요!'</b><br>도약 직전 속도를 늦추지 마세요! 무게중심을 살짝 내렸다가 지뢰를 밟은 것처럼 위로 솟아올라야 합니다.")
+                st.markdown(f"""
+                <h4 style="color:#9C27B0; margin-top:10px; margin-bottom:15px;">🚀 슈퍼맨처럼 솟아오르는 놀이법!</h4>
+                <p style="font-size: 1.05em; color: #3C4043; line-height: 1.5;">
+                    높이, 멀리 뛰려면 <b>용수철처럼 몸을 살짝 움츠렸다가 펴는 힘</b>이 필요해요. 그냥 뛰는 것보다 마지막 걸음이 아주 중요하답니다!
+                </p>
+                <div style="background: #F3E5F5; padding: 18px; border-radius: 12px; border: 2px dashed #E1BEE7; margin-top: 15px;">
+                    <b style="color:#7B1FA2; font-size:1.1em;">🐸 오늘의 미션: 마법의 징검다리!</b><br><br>
+                    <b>1단계:</b> 다다다 달려가다가 도약하기 <b>바로 직전 한 걸음</b>에서 개구리처럼 무릎을 살짝 더 굽혀보세요.<br>
+                    <b>2단계:</b> 마지막 발이 땅에 닿는 순간, <b>'쾅!' 소리가 나게 밟고</b> 하늘에 있는 풍선을 터뜨리듯 무릎을 쭉 펴며 솟아오르세요.<br>
+                    <b>3단계:</b> 뛸 때 양팔을 만세! 하듯 위로 힘차게 끌어올리면 훨씬 멀리 날아가요!
+                </div>
+                """, unsafe_allow_html=True)
                 
         elif "Throw" in selected_cat:
             with tab_pro:
                 st.markdown(f"""
-                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">☄️ 투척(Throw): 키네틱 체인 및 릴리스 분석</h4>
+                <h4 style="color:#0A192F; margin-top:10px; margin-bottom:15px;">☄️ 투척(Throw): 키네틱 체인 분석</h4>
                 <p style="font-size: 0.95em; color: #3C4043; line-height: 1.6;">
-                    <b>[Kinematic Diagnosis]</b> 딜리버리 페이즈에서 좌측 리드 레그의 <b>블록킹(Blocking) 동작이 붕괴</b>되어 릴리스 각도가 <span class="highlight-text">{avg_angle}°</span>에 그쳤습니다.<br><br>
-                    <b>[Kinetic Impact]</b> 하체에서 발생한 선운동량이 상체의 각운동량(Angular Momentum)으로 전이되는 <b>키네틱 체인(Kinetic Chain)</b>이 단절되었습니다. 투척 전 어깨의 충분한 외회전(External Rotation) 지연으로 인해 '활시위(Bow)' 장력 에너지를 상실했습니다.
+                    리드 레그의 <b>블록킹(Blocking) 동작 붕괴</b>로 릴리스 각도가 <span class="highlight-text">{avg_angle}°</span>에 그쳤습니다.<br>
+                    선운동량이 상체의 각운동량으로 전이되는 <b>키네틱 체인</b>이 단절되어 어깨의 '활시위(Bow)' 장력 에너지를 상실했습니다.
                 </p>
                 <div style="font-size: 0.92em; color: #202124; background: #FEF7E6; padding: 15px; border-radius: 8px; border: 1px solid #FDE8B3; margin-top: 15px;">
-                    <b>[훈련 교정 프로토콜 - Protocol Phase 1~3]</b><br>
-                    1. <b>브레이싱(Bracing):</b> 블록킹 발이 지면에 닿는 순간 무릎 관절을 100% 락킹(Locking)하는 정지 훈련<br>
-                    2. <b>코어 텐션:</b> 흉추 가동성 극대화를 통한 하체-코어-어깨의 역학적 꼬임(X-Factor) 확장<br>
-                    3. <b>에너지 전이:</b> 헤비 메디신볼 오버헤드 스로우를 활용한 운동량 폭발 타이밍 교정
+                    <b>[전문 훈련 프로토콜]</b><br>
+                    1. 브레이싱: 블록킹 발 접지 시 무릎 관절 100% 락킹 정지 훈련<br>
+                    2. 코어 텐션: 흉추 가동성 극대화를 통한 하체-코어 역학적 꼬임 확장<br>
+                    3. 에너지 전이: 메디신볼 오버헤드 스로우로 폭발 타이밍 교정
                 </div>
                 """, unsafe_allow_html=True)
             with tab_easy:
-                st.markdown("<b>'앞다리를 철벽처럼 세우고, 상체를 채찍처럼 휘두르세요!'</b><br>몸이 앞으로 무너지면 힘이 분산됩니다. 앞다리로 브레이크를 꽉 밟아주어야 그 반동으로 상체가 강력하게 튕겨 나갑니다.")
+                st.markdown(f"""
+                <h4 style="color:#FF9800; margin-top:10px; margin-bottom:15px;">🎯 인간 투석기가 되는 놀이법!</h4>
+                <p style="font-size: 1.05em; color: #3C4043; line-height: 1.5;">
+                    멀리 던지려면 팔 힘만 쓰면 안 돼요! 몸통 전체를 <b>거대한 투석기나 고무줄 새총</b>처럼 사용해야 해요. 앞발로 튼튼한 기둥을 만들어 볼까요?
+                </p>
+                <div style="background: #FFF8E1; padding: 18px; border-radius: 12px; border: 2px dashed #FFECB3; margin-top: 15px;">
+                    <b style="color:#F57C00; font-size:1.1em;">🧊 오늘의 미션: 얼음 땡 던지기!</b><br><br>
+                    <b>1단계:</b> 도움닫기를 하며 달려가다가, 던지기 직전 앞발을 땅에 딛으면서 <b>'얼음!' 하고 앞다리 무릎을 빳빳하게</b> 세워 멈추세요.<br>
+                    <b>2단계:</b> 다리는 얼음 상태로 딱 버티고, <b>'땡!' 하는 순간 젖혀있던 상체와 팔만</b> 휙! 하고 튕겨 나가게 던지는 거예요.<br>
+                    <b>3단계:</b> 젖은 수건을 팡! 하고 털어내듯 마지막에 손끝을 강하게 채주세요!
+                </div>
+                """, unsafe_allow_html=True)
         else:
             with tab_pro:
                 st.markdown("종목별 정밀 역학 데이터 시뮬레이션 중...")
@@ -229,7 +273,7 @@ st.markdown(f"<h3 style='color: #202124;'>{t['f_title']}</h3>", unsafe_allow_htm
 st.write(f"<span style='color: #5F6368;'>{t['f_desc']}</span>", unsafe_allow_html=True)
 
 with st.form(key='marathon_ai_lab_form', clear_on_submit=True):
-    user_comment = st.text_area("연구소로 데이터 전송 (Data Submission)", placeholder="예: '전문적인 역학 피드백이 훈련에 큰 도움이 됩니다.'")
+    user_comment = st.text_area("연구소로 데이터 전송 (Data Submission)", placeholder="예: '아이들이 얼음땡 놀이 피드백을 보고 너무 좋아합니다!'")
     submit_button = st.form_submit_button(label="의견 전송 (Submit)", type="primary")
 
     if submit_button:
