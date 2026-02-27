@@ -5,7 +5,40 @@ import urllib.parse
 import urllib.request
 
 # 1. 시스템 기본 설정
-st.set_page_config(page_title="Global Athletics AI | Foundation", layout="wide", initial_sidebar_state="expanded")
+# 8. 연구소 피드백 (Pro 버전: 구글 차단 방지 헤더 탑재)
+st.markdown("---")
+with st.form(key='athletes_ai_form_pro', clear_on_submit=True):
+    user_comment = st.text_area(t['f_title'], placeholder=t['f_desc'])
+    submit_button = st.form_submit_button(label="Submit Feedback", type="primary")
+
+    if submit_button and user_comment:
+        try:
+            # 1. 전송할 구글 폼의 '응답 전송' 주소
+            form_url = "https://docs.google.com/forms/d/e/1FAIpQLScq5MZNK2TmD7TknmRBnLqm7j0ci9FQY4GwBD4NmZTT8t0Lzg/formResponse"
+            
+            # 2. 데이터 구성 (필드 ID 확인 필수: entry.503694872)
+            form_data = {"entry.503694872": user_comment}
+            encoded_data = urllib.parse.urlencode(form_data).encode("utf-8")
+
+            # 3. 브라우저로 위장하여 구글의 보안 차단 회피 (User-Agent 추가)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+
+            # 4. 요청 생성 및 전송
+            req = urllib.request.Request(form_url, data=encoded_data, headers=headers)
+            with urllib.request.urlopen(req, timeout=10) as response:
+                # 구글 폼은 성공 시 보통 200번 코드를 반환합니다.
+                if response.getcode() == 200:
+                    st.balloons()
+                    st.success(t['f_success'])
+                else:
+                    st.error(f"⚠️ 서버 응답 오류 (Code: {response.getcode()})")
+                    
+        except Exception as e:
+            # 에러 발생 시 사용자에게 구체적인 원인 출력
+            st.error(f"⚠️ 전송 실패: 구글 폼 설정을 확인해 주세요. (에러: {e})")
+
 
 # 2. 글로벌 UI 언어팩 (7대 언어 완벽 지원 및 코칭 로직 강화)
 ui_langs = {
