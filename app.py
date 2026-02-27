@@ -16,14 +16,15 @@ def calculate_angle(a, b, c):
     if angle > 180.0: angle = 360-angle
     return angle
 
-st.set_page_config(page_title="ATHLETES AI - 전 종목 분석", layout="centered")
+st.set_page_config(page_title="ATHLETES AI - 스포츠 통합 분석", layout="centered")
 
-# 2. UI 구성 (태권도, 유도 추가)
-st.title("🏆 ATHLETES AI: 스포츠/무도 통합 분석")
+# 2. UI 구성 (라켓 스포츠 추가)
+st.title("🏆 ATHLETES AI: 스포츠/무도/라켓 통합 분석")
 event = st.selectbox("분석할 종목을 선택하세요", 
                      ["마라톤/러닝", "경보 (반칙 체크)", "축구 (슈팅/킥)", 
                       "골프 (스윙 궤적)", "역도/웨이트 (데드리프트)", 
-                      "태권도 (발차기 분석)", "유도 (메치기/무릎 중심)"])
+                      "태권도 (발차기)", "유도 (메치기)",
+                      "테니스 (포핸드/서브)", "배드민턴 (스매시)", "탁구 (드라이브)"])
 
 uploaded_file = st.file_uploader(f"[{event}] 영상을 올려주세요", type=["mp4", "mov", "avi"])
 
@@ -34,7 +35,7 @@ if uploaded_file is not None:
     
     frame_window = st.image([])
     status_text = st.empty()
-    status_text.info(f"🔍 AI {event} 전문가가 자세를 분석 중입니다...")
+    status_text.info(f"🔍 AI {event} 전문가가 동작을 분석 중입니다...")
     
     data_list = []
 
@@ -51,21 +52,24 @@ if uploaded_file is not None:
             hip = [lm[mp_pose.PoseLandmark.LEFT_HIP.value].x, lm[mp_pose.PoseLandmark.LEFT_HIP.value].y]
             knee = [lm[mp_pose.PoseLandmark.LEFT_KNEE.value].x, lm[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
             ankle = [lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+            elbow = [lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+            wrist = [lm[mp_pose.PoseLandmark.LEFT_WRIST.value].x, lm[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
 
             mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
             # --- [종목별 특화 분석 로직] ---
-            if event == "태권도 (발차기 분석)":
-                angle = calculate_angle(hip, knee, ankle) # 발차기 확장 각도
+            if event in ["테니스 (포핸드/서브)", "배드민턴 (스매시)"]:
+                angle = calculate_angle(shoulder, elbow, wrist) # 스윙 확장성
                 data_list.append(angle)
-            elif event == "유도 (메치기/무릎 중심)":
-                angle = calculate_angle(hip, knee, ankle) # 중심 낮추기 각도
+            elif event == "탁구 (드라이브)":
+                angle = calculate_angle(hip, knee, ankle) # 낮은 자세 유지력
                 data_list.append(angle)
-            elif event == "골프 (스윙 궤적)" or event == "역도/웨이트 (데드리프트)":
-                angle = calculate_angle(shoulder, hip, knee) # 척추/상체 각도
+            elif event in ["골프 (스윙 궤적)", "역도/웨이트 (데드리프트)"]:
+                angle = calculate_angle(shoulder, hip, knee) # 상체 중립
                 data_list.append(angle)
             else:
-                data_list.append(calculate_angle(hip, knee, ankle))
+                angle = calculate_angle(hip, knee, ankle) # 하체 분석
+                data_list.append(angle)
 
         frame_window.image(image, channels="RGB")
         
@@ -77,17 +81,17 @@ if uploaded_file is not None:
     st.subheader(f"📊 AI {event} 정밀 리포트")
     avg_val = int(np.mean(data_list)) if data_list else 0
 
-    if event == "태권도 (발차기 분석)":
-        st.write(f"**임팩트 신전 각도 (발차기 시원함):** {avg_val}도")
-        st.markdown("* **진단:** 발을 뻗는 순간 무릎이 곧게 펴져야 타격력이 극대화됩니다.")
-    elif event == "유도 (메치기/무릎 중심)":
-        st.write(f"**무릎 굴곡 각도 (중심 낮추기):** {avg_val}도")
-        st.markdown("* **진단:** 메치기 순간 무릎을 충분히 굽혀 중심을 낮춰야 상대의 체중을 이용하기 쉽습니다.")
-    elif event == "골프 (스윙 궤적)":
-        st.write(f"**척추 각 유지 (Spine Angle):** {avg_val}도")
-        st.markdown("* **진단:** 상체가 들리지 않아야 일관된 스윙이 가능합니다.")
+    if event == "테니스 (포핸드/서브)":
+        st.write(f"**스윙 아크 확장성 (팔 펴짐 정도):** {avg_val}도")
+        st.markdown("* **진단:** 임팩트 순간 팔이 충분히 펴져야 더 강력한 구속과 회전이 생깁니다.")
+    elif event == "배드민턴 (스매시)":
+        st.write(f"**오버헤드 타구 각도 (타점 높이):** {avg_val}도")
+        st.markdown("* **진단:** 팔을 최대한 높이 뻗어 타점을 높게 잡아야 공격적인 스매시가 가능합니다.")
+    elif event == "탁구 (드라이브)":
+        st.write(f"**기초 스탠스 안정도 (무릎 낮추기):** {avg_val}도")
+        st.markdown("* **진단:** 낮은 자세를 유지해야 빠른 공에 대한 반응 속도와 파워를 챙길 수 있습니다.")
     else:
-        st.write(f"**핵심 분석 데이터:** {avg_val}도")
-        st.markdown("* **진단:** 분석 결과 자세가 안정적입니다.")
+        st.write(f"**자세 분석 데이터:** {avg_val}도")
+        st.markdown("* **진단:** 동작의 밸런스가 전반적으로 안정적입니다.")
 
     st.balloons()
