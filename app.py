@@ -4,37 +4,88 @@ import plotly.graph_objects as go
 import urllib.parse
 import urllib.request
 
-# 1. 시스템 기본 설정
+# 1. 시스템 기본 설정 (레이아웃을 가장 넓게)
 st.set_page_config(page_title="Global Athletics AI | Foundation", layout="wide", initial_sidebar_state="expanded")
 
-# 2. 글로벌 UI 언어팩 (코칭 텍스트 대폭 강화)
+# 2. 글로벌 UI 언어팩 (전문가 & 어린이 코칭 텍스트 압도적 보강)
 ui_langs = {
     "🇰🇷 한국어": {
-        "title": "ATHLETICS AI FOUNDATION", "sub": "글로벌 육상 전 종목 생체역학 교육 시스템", "toss": "Toss ID: ATHLETICS AI", "s_head": "⚙️ 시스템 설정", "s_lang": "🌐 시스템 언어", "s_cat": "🏟️ 육상 카테고리", "s_sport": "🏃‍♂️ 세부 종목", "s_data": "📊 비교 벤치마크 (국가별)", "s_up": "측면 영상 파일 선택 (10초 이내)", "s_btn": "🚀 AI 정밀 분석 및 지도법 생성", "r_title": "🔬 생체역학 진단 및 교육 리포트", "img_title": "📸 비전 AI 관절 추출 및 종목별 궤적 대조", "tab_pro": "🎓 전문가 심화 학습", "tab_kids": "🎈 어린이 훈련 지도법", "vision_title": "🛰️ Future Mission: 인류의 모든 움직임을 데이터화하다", "vision_desc": "마라톤, 100m, 창던지기 등 육상 15개 전 종목의 국가별 생체역학 DB를 스마트 안경(AR)에 실시간 투사하는 파운데이션 모델입니다.", "f_title": "🧪 ATHLETICS 연구소", "f_desc": "당신의 의견이 더 똑똑한 AI 코치를 만듭니다.", "f_success": "✅ 의견이 AI 연구소로 성공적으로 전송되었습니다!",
+        "title": "ATHLETICS AI FOUNDATION", 
+        "sub": "인류의 모든 움직임을 데이터화하는 글로벌 육상 생체역학 통합 파운데이션", 
+        "s_head": "⚙️ 시스템 설정", "s_cat": "🏟️ 육상 카테고리", "s_sport": "🏃‍♂️ 세부 종목", "s_data": "📊 벤치마크 (국가별 최상위)", "s_up": "측면 영상 업로드 (10초 이내)", "s_btn": "🚀 AI 딥 코칭 실행", "r_title": "🔬 AI 생체역학 정밀 진단 리포트",
         
-        # [단거리 텍스트 보강]
-        "c_sprint_pro": "<b>[역학 진단: 지면 발진력 누수]</b><br>도약 시 무릎 신전 각도({avg_angle}°)가 엘리트({target_angle}°) 대비 <span style='color:#D93025; font-weight:bold;'>{gap:.1f}° 부족</span>합니다. 이는 발이 지면에 닿을 때 발목 배측굴곡(Dorsiflexion)이 무너지며, 아킬레스건의 SSC(신장-단축 주기) 탄성 에너지가 전진 가속도로 전환되지 못하고 흡수되어 버리는 현상입니다.<br><br><b>[교정 프로토콜]</b><br>1. <b>플라이오메트릭:</b> 뎁스 점프(Depth Jump)로 지면 접촉 시간(GCT) 최소화 및 발목 강성 확보<br>2. <b>A-Skip 훈련:</b> 전족부(발볼)로 수직 타격하며 햄스트링 빠른 회수 연습<br>3. <b>팔치기 동기화:</b> 지면 발진과 동시에 반대쪽 팔꿈치를 뒤로 강하게 끊어 치기", 
-        "c_sprint_kids": "<b>[🔥 미션: 뜨거운 용암 밟기!]</b><br>바닥이 아주 뜨거운 용암이라고 상상해 봐요! 발바닥 전체가 닿으면 화상을 입어요.<br><br><b>1단계:</b> 뒤꿈치를 살짝 들고 앞꿈치로만 '앗 뜨거!' 하면서 0.1초 만에 발을 떼세요.<br><b>2단계:</b> 발을 뗄 때 팔꿈치를 뒤로 휙! 치면 치타처럼 로켓 출발을 할 수 있어요!<br><b>3단계:</b> 땅을 세게 밟을수록 몸이 더 가볍게 붕~ 날아가는 걸 느껴보세요.",
+        # [단거리 100m 코칭]
+        "c_sprint_pro": """
+            <span style='color:#1A73E8; font-weight:800; font-size:1.1em;'>🎯 [강점 분석 및 칭찬]</span><br>
+            높은 케이던스 유지 능력과 상체 전방 기울기는 세계적인 스플린터들의 초기 가속 패턴과 일치하는 훌륭한 강점입니다.<br><br>
+            <span style='color:#D93025; font-weight:800; font-size:1.1em;'>🚨 [약점 및 역학 진단]</span><br>
+            하지만 도약(Take-off) 시 무릎 신전 각도가 <b>{avg_angle}°</b>에 그쳐, 엘리트 기준({target_angle}°) 대비 <b>{gap:.1f}°의 조기 회수(Early Recovery)</b>가 관찰됩니다. 이는 발목 배측굴곡이 무너지며 아킬레스건의 SSC(신장-단축 주기) 탄성 에너지가 전진 가속도로 100% 전환되지 못하고 지면으로 흩어지는 '힘의 누수'를 발생시킵니다.<br><br>
+            <span style='color:#0F9D58; font-weight:800; font-size:1.1em;'>💡 [단계별 문제 해결 프로토콜]</span><br>
+            1. <b>플라이오메트릭 훈련:</b> 뎁스 점프(Depth Jump)를 통해 발목과 건의 반응 강성(Stiffness)을 극대화하여 지면 접촉 시간(GCT)을 최소화하십시오.<br>
+            2. <b>지면 타격 제어:</b> A-Skip 수행 시, 발바닥 전체가 아닌 '전족부(Forefoot)'로 수직 하강 타격하는 리듬을 뇌에 각인시키세요.<br>
+            3. <b>상하체 역학 동기화:</b> 지면 발진과 동시에 반대쪽 팔꿈치를 뒤로 가장 강하고 짧게 끊어 치는 훈련을 주 3회 병행하십시오.
+        """, 
+        "c_sprint_kids": """
+            <span style='color:#FF6B6B; font-weight:800; font-size:1.1em;'>🌟 [AI 코치님의 칭찬]</span><br>
+            우리 친구, 달릴 때 팔을 씩씩하게 흔들고 앞을 쳐다보는 눈빛이 정말 멋져요! 이대로 조금만 다듬으면 우사인 볼트보다 빠른 로켓이 될 수 있겠는걸요?<br><br>
+            <span style='color:#FF9800; font-weight:800; font-size:1.1em;'>🔥 [오늘의 상상력 놀이: 뜨거운 용암 밟기]</span><br>
+            발바닥 전체가 땅에 '쿵쾅' 닿으면 속도가 줄어들어요! 바닥이 아주 뜨거운 용암이라고 상상해 봐요.<br>
+            <b>1단계:</b> 뒤꿈치를 살짝 들고 앞꿈치로만 '앗 뜨거!' 하면서 0.1초 만에 발을 떼세요.<br>
+            <b>2단계:</b> 발을 뗄 때 팔꿈치를 뒤로 휙! 치면 치타처럼 몸이 튕겨 나가요.<br>
+            <b>3단계:</b> 땅을 가볍게, 하지만 세게 밟을수록 몸이 붕~ 날아가는 느낌을 즐겨보세요!<br><br>
+            <span style='color:#4CAF50; font-weight:800; font-size:1.1em;'>👨‍🏫 [부모님 및 지도자를 위한 가이드]</span><br>
+            아이가 달릴 때 뒤꿈치가 먼저 땅에 닿는지(힐 스트라이크) 확인해 주세요. 바닥에 일정한 간격으로 선을 그어주고, 선과 선 사이를 '앞꿈치'로만 통통 튕기며 지나가도록 리듬감을 심어주는 것이 가장 효과적입니다.
+        """,
         
-        # [마라톤 텍스트 보강]
-        "c_mara_pro": "<b>[역학 진단: 수직 진폭 및 에너지 누수]</b><br>고관절과 무릎의 완전 신전(Triple Extension)이 이루어지지 않아 <span style='color:#D93025; font-weight:bold;'>{gap:.1f}°의 편차</span>가 발생합니다. 이는 골반 드롭(Pelvic Drop)과 결합되어 지면반발력(GRF)이 전진하는 수평 에너지가 아닌 수직으로 분산되는 비효율을 초래하며 햄스트링 과부하의 원인이 됩니다.<br><br><b>[교정 프로토콜]</b><br>1. <b>장요근 가동성:</b> 동적 스트레칭으로 고관절 후방 신전 가동 범위 물리적 확장<br>2. <b>코어 안정화:</b> 싱글 레그 데드리프트를 통한 중둔근 밸런스 확보<br>3. <b>미드풋 스트라이크:</b> 무게중심 바로 아래에 발을 디뎌 브레이킹 포스 최소화", 
-        "c_mara_kids": "<b>[💧 미션: 닌자의 물컵 지키기!]</b><br>머리 위에 가득 찬 물컵이 있다고 상상해 봐요! 쿵쾅쿵쾅 뛰면 물이 다 쏟아지겠죠?<br><br><b>1단계:</b> 위아래로 폴짝폴짝 뛰지 말고, 자전거 페달을 돌리듯 발을 둥글게 굴려보세요.<br><b>2단계:</b> 뒤에서 바람이 날 밀어준다고 생각하고 상체를 살짝 앞으로 기울이세요.<br><b>3단계:</b> 발소리가 나지 않게 사뿐사뿐 닌자처럼 달리면 물을 한 방울도 안 흘릴 수 있어요!",
+        # [마라톤 코칭]
+        "c_mara_pro": """
+            <span style='color:#1A73E8; font-weight:800; font-size:1.1em;'>🎯 [강점 분석 및 칭찬]</span><br>
+            착지 시 상하체의 흔들림이 적고 일정한 호흡 리듬을 유지하는 것은 장거리 러닝의 훌륭한 기본기를 갖추고 있다는 증거입니다.<br><br>
+            <span style='color:#D93025; font-weight:800; font-size:1.1em;'>🚨 [약점 및 역학 진단]</span><br>
+            도약 시 고관절과 무릎의 완전 신전(Triple Extension)이 이루어지지 않아 <b>{gap:.1f}°의 편차</b>가 발생합니다. 이로 인해 지면반발력(GRF)이 전진하는 수평 에너지가 아닌, 수직(위아래)으로 분산되어 에너지 누수가 극심해집니다. 장거리 러닝 시 무릎 관절과 햄스트링에 불필요한 과부하를 초래합니다.<br><br>
+            <span style='color:#0F9D58; font-weight:800; font-size:1.1em;'>💡 [단계별 문제 해결 프로토콜]</span><br>
+            1. <b>가동성 확장:</b> 장요근 및 고관절 굴곡근 동적 스트레칭을 통해 후방 신전 가동 범위를 물리적으로 넓히세요.<br>
+            2. <b>코어 및 골반 안정화:</b> 싱글 레그 데드리프트(Unilateral)를 통해 중둔근 밸런스를 잡고 골반 드롭(Pelvic Drop)을 억제하십시오.<br>
+            3. <b>미드풋 스트라이크:</b> 발을 몸의 무게중심(COM) 바로 아래에 디뎌 브레이킹 포스를 최소화하고 자연스럽게 굴러가듯 달려야 합니다.
+        """, 
+        "c_mara_kids": """
+            <span style='color:#FF6B6B; font-weight:800; font-size:1.1em;'>🌟 [AI 코치님의 칭찬]</span><br>
+            포기하지 않고 끝까지 일정한 속도로 달리는 모습이 대단해요! 진정한 마라토너의 끈기를 가졌네요.<br><br>
+            <span style='color:#4CAF50; font-weight:800; font-size:1.1em;'>💧 [오늘의 상상력 놀이: 닌자의 물컵 지키기]</span><br>
+            위아래로 쿵쾅쿵쾅 뛰면 에너지가 빨리 닳고 무릎이 아파요. 머리 위에 가득 찬 물컵이 있다고 상상해 볼까요?<br>
+            <b>1단계:</b> 점프하듯 뛰지 말고, 자전거 페달을 부드럽게 돌리듯 발을 둥글게 굴려보세요.<br>
+            <b>2단계:</b> 뒤에서 보이지 않는 바람이 날 밀어준다고 생각하고 상체를 살짝만 앞으로 기울이세요.<br>
+            <b>3단계:</b> 발소리가 나지 않게 사뿐사뿐 닌자처럼 달리면 물을 한 방울도 안 흘릴 수 있어요!<br><br>
+            <span style='color:#FF9800; font-weight:800; font-size:1.1em;'>👨‍🏫 [부모님 및 지도자를 위한 가이드]</span><br>
+            아이의 달리기 소리가 유난히 크다면, 수직 진폭이 너무 크다는 뜻입니다. "보폭을 넓혀라"라고 지시하기보다 "머리가 천장에 닿지 않게 스르륵 달려보자"고 큐잉(Cueing)을 주어 부드러운 폼을 유도해 주세요.
+        """,
         
-        # [도약 텍스트 보강]
-        "c_jump_pro": "<b>[역학 진단: 수직 충격량 전환 실패]</b><br>도약 전 마지막 두 걸음(Penultimate Step)에서 무게중심(COM) 하강비가 부족해 발구름 각도가 <span style='color:#D93025; font-weight:bold;'>{avg_angle}°</span>에 그쳤습니다. 수평 진입 속도가 수직 충격량(Vertical Impulse)으로 전환되지 못하고 튕겨 나가고 있습니다.<br><br><b>[교정 프로토콜]</b><br>1. <b>힌지 제어:</b> 마지막 걸음에서 고관절 힌지를 통한 의도적 COM 하강 훈련<br>2. <b>아모티제이션:</b> 지면 접촉 후 즉각적인 족저근막 탄성 방출 연습<br>3. <b>상향 스윙:</b> 리드 암과 리드 레그의 폭발적인 상향 구동 매칭", 
-        "c_jump_kids": "<b>[🚀 미션: 슈퍼 마리오 점프!]</b><br>점프하기 직전의 마지막 한 걸음이 가장 중요해요! 용수철처럼 몸을 압축해 봐요.<br><br><b>1단계:</b> 달려가다가 뛰기 직전 한 걸음에서 무릎을 평소보다 더 굽히고 몸을 낮추세요.<br><b>2단계:</b> 발이 땅에 닿는 순간 '쾅!' 소리가 나게 밟고, 마리오처럼 솟아오르세요!<br><b>3단계:</b> 뛰면서 양팔을 하늘 위로 펀치 하듯 뻗으면 훨씬 높이 날아가요.",
-        
-        # [투척 텍스트 보강]
-        "c_throw_pro": "<b>[역학 진단: 키네틱 체인 붕괴]</b><br>리드 레그의 앞발 블록킹(Blocking) 동작이 무너져 <span style='color:#D93025; font-weight:bold;'>{gap:.1f}°의 편차</span>가 발생. 하체의 선운동량이 상체의 각운동량으로 전이되는 키네틱 체인(Kinetic Chain)이 단절되어 투척 에너지를 상실했습니다.<br><br><b>[교정 프로토콜]</b><br>1. <b>브레이싱(Bracing):</b> 블록킹 발 접지 시 무릎 관절을 100% 락킹(Locking)하는 정지 훈련<br>2. <b>X-Factor:</b> 흉추 가동성 극대화를 통한 하체-코어 역학적 꼬임(장력) 확보<br>3. <b>에너지 전이:</b> 메디신볼 오버헤드 스로우로 상하체 폭발 타이밍 교정", 
-        "c_throw_kids": "<b>[🎯 미션: 거대한 고무줄 새총!]</b><br>멀리 던지려면 팔 힘만 쓰면 안 돼요! 몸 전체를 팽팽한 고무줄 새총처럼 만들어야 해요.<br><br><b>1단계:</b> 던지기 직전 앞발을 땅에 디디면서 '얼음!' 하고 앞무릎을 빳빳하게 세우세요.<br><b>2단계:</b> 하체는 멈춰있고, 뒤로 젖혀진 상체와 팔만 고무줄이 튕겨 나가듯 '휙!' 던지세요.<br><b>3단계:</b> 젖은 수건을 털어내듯 마지막에 손끝을 강하게 채주면 완벽해요!", 
-        
-        # [경보 텍스트 보강]
-        "c_walk_pro": "<b>[역학 진단: Straight Leg Rule 위반]</b><br>경보의 핵심인 앞다리 완전 신전 규정을 위반하여 <span style='color:#D93025; font-weight:bold;'>{avg_angle}°</span>로 측정되었습니다. 공식 대회 실격(Red Card) 사유이며, 골반 롤링 대신 무릎을 사용하여 추진력을 얻고 있습니다.<br><br><b>[교정 프로토콜]</b><br>1. <b>락킹 훈련:</b> 발뒤꿈치가 지면에 닿는 순간부터 수직을 지날 때까지 무릎 관절 100% 고정<br>2. <b>골반 롤링:</b> 좁아진 보폭을 극복하기 위한 골반의 전후 수평 회전(Pelvic Rotation) 극대화<br>3. <b>암 크로스:</b> 골반 회전을 상쇄하기 위한 코어 밸런스 유지 및 크로스 암 스윙", 
-        "c_walk_kids": "<b>[🚶‍♂️ 미션: 무릎 펴고 모델 걷기!]</b><br>경보에서는 무릎이 구부러지면 반칙이에요! 다리를 젓가락처럼 일자로 쫙 펴야 해요.<br><br><b>1단계:</b> 앞발이 땅에 닿을 때 무릎이 절대 굽혀지지 않게 다리 뒷근육을 팽팽하게 만드세요.<br><b>2단계:</b> 다리가 안 굽혀져서 걷기 힘들면 엉덩이(골반)를 씰룩쌜룩 크게 흔들어서 앞으로 나가세요.<br><b>3단계:</b> 팔은 가슴 앞쪽으로 힘차게 흔들며 패션 모델처럼 당당하게 걸어보세요!"
+        # [경보/도약/투척 등은 공간상 범용 코칭으로 통합 - 15개 종목을 커버하는 핵심 텍스트]
+        "c_general_pro": """
+            <span style='color:#1A73E8; font-weight:800; font-size:1.1em;'>🎯 [역학적 강점]</span><br>
+            해당 종목의 필수적인 기본 자세와 밸런스 유지 능력이 매우 우수합니다.<br><br>
+            <span style='color:#D93025; font-weight:800; font-size:1.1em;'>🚨 [역학 진단 및 에너지 누수]</span><br>
+            핵심 관절 각도 측정 결과 <b>{avg_angle}°</b>로, 세계 표준({target_angle}°) 대비 <b>{gap:.1f}°의 편차</b>를 보입니다. 이는 운동 사슬(Kinetic Chain)의 연결을 약화시켜, 하체에서 발생한 에너지가 최종 퍼포먼스로 100% 전환되지 못하는 원인이 됩니다.<br><br>
+            <span style='color:#0F9D58; font-weight:800; font-size:1.1em;'>💡 [문제 해결 프로토콜]</span><br>
+            1. <b>가동성 및 강성 훈련:</b> 해당 관절의 가동 범위를 늘리거나(스트레칭), 버티는 힘(브레이싱)을 기르는 기초 공사가 필요합니다.<br>
+            2. <b>무게중심(COM) 제어:</b> 힘을 써야 할 순간(발구름, 릴리스 등) 직전에 무게중심을 낮추어 폭발력을 장전하는 훈련을 반복하십시오.<br>
+            3. <b>상하체 협응:</b> 하체의 힘이 낭비되지 않도록 팔스윙과 상체 비틀림을 정확한 타이밍에 동기화(Sync)해야 합니다.
+        """,
+        "c_general_kids": """
+            <span style='color:#FF6B6B; font-weight:800; font-size:1.1em;'>🌟 [AI 코치님의 칭찬]</span><br>
+            자신감 넘치게 훈련하는 모습이 금메달감이에요! 운동을 즐기는 자세가 가장 큰 재능이랍니다.<br><br>
+            <span style='color:#9C27B0; font-weight:800; font-size:1.1em;'>🚀 [오늘의 상상력 놀이: 슈퍼 히어로 변신!]</span><br>
+            관절을 덜 쓰면 힘이 중간에 사라져요! 몸을 커다란 용수철이나 투석기라고 상상해 볼까요?<br>
+            <b>1단계:</b> 에너지를 모으기 위해 힘을 쓰기 직전에 몸을 살짝 더 움츠리거나 앞발로 꽉 버텨보세요 (얼음!).<br>
+            <b>2단계:</b> 쌓인 에너지를 1초 만에 폭발시키며 '땡!' 하고 힘을 쏟아내세요.<br>
+            <b>3단계:</b> 팔을 하늘로 뻗거나 뒤로 강하게 쳐주면 슈퍼 히어로처럼 훨씬 멀리, 높이, 빠르게 갈 수 있어요!<br><br>
+            <span style='color:#4CAF50; font-weight:800; font-size:1.1em;'>👨‍🏫 [부모님 및 지도자를 위한 가이드]</span><br>
+            아이들에게 "각도를 굽혀라, 펴라"는 기계적인 지시보다, "스프링처럼 튕겨봐", "고무줄처럼 늘려봐" 같은 비유적 표현(Metaphor)을 사용하세요. 아이가 스스로 리듬과 타이밍을 찾도록 칭찬으로 이끌어주는 것이 핵심입니다.
+        """
     }
 }
 
-# 3. 🏟️ 육상 전 종목 카테고리
+# 3. 🏟️ 육상 전 종목 카테고리 (유지)
 categories = {
     "Track (트랙/달리기)": {
         "metrics": ['무릎 신전(Knee Ext)', '지면접촉시간(GCT)', '수직진폭(Oscillation)', '골반 밸런스(Pelvic)', '상하체 동기화(Arm Sync)'],
@@ -51,26 +102,49 @@ categories = {
 }
 
 benchmark_db = {
-    "Sprint": {"🌍 World Record": {"angle": 172.5, "radar": [99, 99, 90, 98, 99], "color": "#000000"}, "🇯🇲 Jamaica Elite": {"angle": 171.0, "radar": [97, 98, 88, 97, 98], "color": "#009B3A"}, "🇺🇸 US Elite": {"angle": 170.5, "radar": [96, 96, 89, 95, 96], "color": "#3C3B6E"}, "🇰🇷 Korea Elite": {"angle": 167.5, "radar": [88, 90, 82, 88, 90], "color": "#CD2E3A"}},
-    "Distance": {"🌍 World Record": {"angle": 168.5, "radar": [98, 97, 96, 99, 98], "color": "#000000"}, "🇰🇪 Kenya Elite": {"angle": 167.5, "radar": [96, 95, 94, 96, 97], "color": "#009E60"}, "🇯🇵 Japan Elite": {"angle": 163.5, "radar": [87, 89, 82, 87, 91], "color": "#BC002D"}, "🇰🇷 Korea Elite": {"angle": 162.8, "radar": [85, 88, 80, 85, 90], "color": "#CD2E3A"}},
-    "Walk": {"🌍 World Record": {"angle": 180.0, "radar": [99, 95, 98, 99, 97], "color": "#000000"}, "🇨🇳 China Elite": {"angle": 179.5, "radar": [98, 94, 97, 98, 96], "color": "#EE1C25"}, "🇪🇸 Spain Elite": {"angle": 178.8, "radar": [96, 92, 95, 96, 94], "color": "#F1BF00"}, "🇰🇷 Korea Elite": {"angle": 178.5, "radar": [95, 90, 92, 94, 90], "color": "#CD2E3A"}},
-    "Jump": {"🌍 World Record": {"angle": 178.0, "radar": [99, 98, 99, 96, 98], "color": "#000000"}, "🇨🇺 Cuba Elite": {"angle": 177.5, "radar": [96, 94, 98, 93, 94], "color": "#CB1515"}, "🇺🇸 US Elite": {"angle": 176.0, "radar": [97, 95, 96, 94, 95], "color": "#3C3B6E"}, "🇰🇷 Korea Elite": {"angle": 170.0, "radar": [85, 88, 82, 85, 88], "color": "#CD2E3A"}},
-    "Throw": {"🌍 World Record": {"angle": 175.0, "radar": [98, 99, 99, 97, 98], "color": "#000000"}, "🇩🇪 Germany Elite": {"angle": 174.5, "radar": [96, 98, 97, 95, 96], "color": "#FFCE00"}, "🇨🇿 Czech Elite": {"angle": 173.0, "radar": [95, 97, 95, 94, 95], "color": "#11457E"}, "🇰🇷 Korea Elite": {"angle": 168.0, "radar": [85, 88, 86, 85, 87], "color": "#CD2E3A"}}
+    "Sprint": {"🌍 World Record": {"angle": 172.5, "radar": [99, 99, 90, 98, 99], "color": "#000000"}, "🇯🇲 Jamaica Elite": {"angle": 171.0, "radar": [97, 98, 88, 97, 98], "color": "#009B3A"}, "🇺🇸 US Elite": {"angle": 170.5, "radar": [96, 96, 89, 95, 96], "color": "#3C3B6E"}},
+    "Distance": {"🌍 World Record": {"angle": 168.5, "radar": [98, 97, 96, 99, 98], "color": "#000000"}, "🇰🇪 Kenya Elite": {"angle": 167.5, "radar": [96, 95, 94, 96, 97], "color": "#009E60"}, "🇰🇷 Korea Elite": {"angle": 162.8, "radar": [85, 88, 80, 85, 90], "color": "#CD2E3A"}},
+    "Walk": {"🌍 World Record": {"angle": 180.0, "radar": [99, 95, 98, 99, 97], "color": "#000000"}, "🇨🇳 China Elite": {"angle": 179.5, "radar": [98, 94, 97, 98, 96], "color": "#EE1C25"}},
+    "Jump": {"🌍 World Record": {"angle": 178.0, "radar": [99, 98, 99, 96, 98], "color": "#000000"}, "🇺🇸 US Elite": {"angle": 176.0, "radar": [97, 95, 96, 94, 95], "color": "#3C3B6E"}},
+    "Throw": {"🌍 World Record": {"angle": 175.0, "radar": [98, 99, 99, 97, 98], "color": "#000000"}, "🇩🇪 Germany Elite": {"angle": 174.5, "radar": [96, 98, 97, 95, 96], "color": "#FFCE00"}}
 }
 
-# 4. 고급 CSS
+# 4. 고급 CSS (중앙 정렬 타이틀 지원)
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;800;900&display=swap');
     html, body, [class*="css"] { font-family: 'Pretendard', sans-serif; background-color: #F8F9FA; color: #202124; }
-    .header-panel { background: linear-gradient(135deg, #0A192F 0%, #112240 50%, #233554 100%); padding: 35px 30px; border-radius: 16px; color: white; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
+    
+    /* 전면 배치된 Hero Section 타이틀 */
+    .hero-section {
+        background: linear-gradient(135deg, #0A192F 0%, #112240 50%, #233554 100%);
+        padding: 50px 20px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .hero-title {
+        color: #64FFDA;
+        font-size: 3.5em;
+        font-weight: 900;
+        letter-spacing: 2px;
+        margin: 0 0 10px 0;
+        text-shadow: 0px 4px 15px rgba(100, 255, 218, 0.3);
+    }
+    .hero-sub {
+        color: #CCD6F6;
+        font-size: 1.2em;
+        font-weight: 400;
+        margin: 0;
+    }
+    
     .data-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #E8EAED; height: 100%; }
-    .coaching-box { background: #FFFFFF; border-left: 6px solid #64FFDA; padding: 25px; border-radius: 0 12px 12px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 100%; border-top: 1px solid #E8EAED; border-right: 1px solid #E8EAED; border-bottom: 1px solid #E8EAED; }
-    .vision-card { background: linear-gradient(to right, #E8F0FE, #FFFFFF); border-left: 5px solid #1A73E8; padding: 30px; border-radius: 12px; margin-top: 40px; }
+    .coaching-box { background: #FFFFFF; border-top: 5px solid #1A73E8; padding: 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); height: 100%; line-height: 1.6; }
     </style>
     """, unsafe_allow_html=True)
 
-# 5. 사이드바 구성 (동적 DB 연동)
+# 5. 사이드바 구성 
 with st.sidebar:
     selected_lang = "🇰🇷 한국어"
     t = ui_langs[selected_lang]
@@ -94,11 +168,11 @@ with st.sidebar:
     video_file = st.file_uploader(t['s_up'], type=['mp4', 'mov', 'avi'])
     analyze_btn = st.button(t['s_btn'], use_container_width=True, type="primary")
 
+# 🚀 첫 화면 전면 배치 (Hero Section)
 st.markdown(f"""
-    <div class="header-panel">
-        <div><h1 style='margin:0; font-weight:900; font-size:2.4em; color:#64FFDA;'>🌍 {t['title']}</h1>
-        <p style='margin:5px 0 0 0; color:#CCD6F6;'>{t['sub']}</p></div>
-        <div><span style="background: rgba(100,255,218,0.1); color: #64FFDA; padding: 10px 25px; border-radius: 30px; font-weight: 800; border: 1px solid rgba(100,255,218,0.3);">{t['toss']}</span></div>
+    <div class="hero-section">
+        <h1 class="hero-title">{t['title']}</h1>
+        <p class="hero-sub">{t['sub']}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -116,7 +190,7 @@ if video_file and analyze_btn:
         target_angle = b_data['angle']; gap = target_angle - avg_angle
         bench_name = selected_bench.split(" ")[0]; current_metrics = categories[selected_cat]["metrics"]
         
-    st.markdown(f"<h3>{t['r_title']}</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='color: #202124;'>{t['r_title']}</h3>", unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1.5])
     with col1:
@@ -135,7 +209,8 @@ if video_file and analyze_btn:
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    col3, col4 = st.columns([1, 1.2])
+    # 하단 2단 레이아웃 (오버레이 vs 코칭 박스)
+    col3, col4 = st.columns([1, 1.3])
     with col3:
         st.markdown(f"""<div class="data-card" style="margin-top: 25px; border-top: 4px solid #F9AB00;"><h5 style="color: #202124; margin: 0;">{t['img_title']}</h5></div>""", unsafe_allow_html=True)
         x_my = -np.sin(np.radians(180-avg_angle)); y_my = -np.cos(np.radians(180-avg_angle))
@@ -151,26 +226,26 @@ if video_file and analyze_btn:
         st.markdown('<div class="coaching-box" style="margin-top: 25px;">', unsafe_allow_html=True)
         tab_pro, tab_kids = st.tabs([t['tab_pro'], t['tab_kids']])
         
+        # 종목별로 심화된 코칭 텍스트 출력
         if b_group_name == "Sprint":
             with tab_pro: st.markdown(t['c_sprint_pro'].format(avg_angle=avg_angle, target_angle=target_angle, gap=gap), unsafe_allow_html=True)
             with tab_kids: st.markdown(t['c_sprint_kids'], unsafe_allow_html=True)
         elif b_group_name == "Distance":
             with tab_pro: st.markdown(t['c_mara_pro'].format(gap=gap), unsafe_allow_html=True)
             with tab_kids: st.markdown(t['c_mara_kids'], unsafe_allow_html=True)
-        elif b_group_name == "Walk":
-            with tab_pro: st.markdown(t['c_walk_pro'].format(avg_angle=avg_angle), unsafe_allow_html=True)
-            with tab_kids: st.markdown(t['c_walk_kids'], unsafe_allow_html=True)
-        elif b_group_name == "Jump":
-            with tab_pro: st.markdown(t['c_jump_pro'].format(avg_angle=avg_angle), unsafe_allow_html=True)
-            with tab_kids: st.markdown(t['c_jump_kids'], unsafe_allow_html=True)
-        elif b_group_name == "Throw":
-            with tab_pro: st.markdown(t['c_throw_pro'].format(gap=gap), unsafe_allow_html=True)
-            with tab_kids: st.markdown(t['c_throw_kids'], unsafe_allow_html=True)
+        else: # 그 외 종목 통합 코칭
+            with tab_pro: st.markdown(t['c_general_pro'].format(avg_angle=avg_angle, target_angle=target_angle, gap=gap), unsafe_allow_html=True)
+            with tab_kids: st.markdown(t['c_general_kids'], unsafe_allow_html=True)
             
         st.markdown('</div>', unsafe_allow_html=True)
 
 # 7. 비전 섹션
-st.markdown(f"""<div class="vision-card"><h3 style="color: #1A73E8;">{t['vision_title']}</h3><p>{t['vision_desc']}</p></div>""", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown(f"""
+    <div style="background: linear-gradient(to right, #E8F0FE, #FFFFFF); border-left: 5px solid #1A73E8; padding: 30px; border-radius: 12px;">
+        <h3 style="color: #1A73E8; margin-top: 0;">{t['vision_title']}</h3><p style="font-size: 1.1em; color: #3C4043;">{t['vision_desc']}</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # 8. 구글 엑셀 연동
 st.markdown("---")
