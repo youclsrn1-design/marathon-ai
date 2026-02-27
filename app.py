@@ -1,6 +1,8 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+import urllib.parse
+import urllib.request
 
 # 1. 시스템 기본 설정
 st.set_page_config(page_title="MARATHON AI | Global Standard", layout="wide", initial_sidebar_state="expanded")
@@ -17,9 +19,9 @@ ui_langs = {
         "img_title": "📸 비전 AI 관절 추출 및 표준 궤적 대조",
         "img_desc": "표준화된 관절 좌표를 기반으로 사용자의 도약 각도(🔴)와 세계 기준선(🟡)의 생체역학적 편차를 시각화합니다.",
         "vision_title": "🛰️ Future Mission: 메타 안경 & 심박수 동기화 코칭",
-        "vision_desc": "본 시스템은 구글/메타의 스마트 웨어러블과 결합하여, 실시간 심박수와 메타 안경의 오디오 엔진(BPM)을 동기화하는 'AI 리듬 코칭' 시범 사업을 준비 중입니다. 마라톤부터 경보 판정까지, 전 세계 스포츠 데이터를 표준화합니다.",
+        "vision_desc": "본 시스템은 구글/메타의 스마트 웨어러블과 결합하여, 실시간 심박수와 메타 안경의 오디오 엔진(BPM)을 동기화하는 'AI 리듬 코칭' 시범 사업을 준비 중입니다. 마라톤부터 경보 판정, 100m 스프린트까지 전 세계 스포츠 데이터를 표준화합니다.",
         "f_title": "🧪 MARATHON AI 연구소", "f_desc": "당신의 폼이 세계의 표준이 됩니다. 딥러닝 분석 결과에 대한 자유로운 의견을 남겨주세요.",
-        "f_success": "✅ 귀하의 소중한 생체역학 피드백이 AI 연구소로 성공적으로 전송되었습니다!"
+        "f_success": "✅ 귀하의 소중한 의견이 AI 연구소(Google Sheets)로 성공적으로 실시간 전송되었습니다!"
     },
     "🇺🇸 English": {
         "title": "MARATHON AI PRO", "sub": "Global Biomechanical Standard System", "toss": "Powered by MARATHON AI",
@@ -31,14 +33,22 @@ ui_langs = {
         "img_title": "📸 Vision AI Skeletal Tracking",
         "img_desc": "Visualizes the biomechanical deviation between the user's push-off angle (🔴) and the world baseline (🟡).",
         "vision_title": "🛰️ Future Mission: Meta Glass & HR Sync Coaching",
-        "vision_desc": "Preparing a pilot project integrating Google/Meta wearables to synchronize real-time heart rate with audio BPM pacing. Standardizing global sports data from marathons to race walking.",
+        "vision_desc": "Preparing a pilot project integrating Google/Meta wearables to synchronize real-time heart rate with audio BPM pacing. Standardizing global sports data across all track disciplines.",
         "f_title": "🧪 MARATHON AI Lab", "f_desc": "Your form becomes the global standard. Please leave your feedback.",
-        "f_success": "✅ Your biomechanical feedback has been successfully submitted!"
+        "f_success": "✅ Your feedback has been successfully submitted to our Google Sheets database!"
     }
 }
 
-# 3. 글로벌 벤치마크 데이터베이스 (종목별 분리: 마라톤 vs 경보)
+# 3. 🏆 글로벌 벤치마크 데이터베이스 (100m 단거리 완벽 추가)
 benchmarks = {
+    "100m 단거리 (100m Sprint)": {
+        "🌍 World Record (세계 신기록)": {"angle": 172.5, "radar": [99, 99, 90, 98, 99], "color": "#000000"},
+        "🇯🇲 Jamaica Elite (자메이카 최상위)": {"angle": 171.0, "radar": [97, 98, 88, 97, 98], "color": "#009B3A"},
+        "🇺🇸 US Elite (미국 국가대표)": {"angle": 170.5, "radar": [96, 96, 89, 95, 96], "color": "#3C3B6E"},
+        "🇬🇧 GB Elite (영국 대표팀)": {"angle": 169.0, "radar": [92, 94, 85, 93, 94], "color": "#012169"},
+        "🇰🇷 Korea Elite (대한민국 대표팀)": {"angle": 167.5, "radar": [88, 90, 82, 88, 90], "color": "#CD2E3A"},
+        "🌐 Global Amateur (일반인 평균)": {"angle": 150.0, "radar": [60, 50, 65, 55, 60], "color": "#888888"}
+    },
     "마라톤 (Marathon)": {
         "🌍 World Record (세계 신기록)": {"angle": 168.5, "radar": [98, 97, 96, 99, 98], "color": "#000000"},
         "🇰🇪 Kenya Elite (케냐 최상위)": {"angle": 167.5, "radar": [96, 95, 94, 96, 97], "color": "#009E60"},
@@ -70,17 +80,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 5. 사이드바 (종목 선택 추가)
+# 5. 사이드바 구성
 with st.sidebar:
     selected_lang = st.selectbox("🌐 Language", list(ui_langs.keys()))
     t = ui_langs[selected_lang]
     st.markdown("---")
     
-    # 종목 선택 로직
     sport_types = list(benchmarks.keys())
     selected_sport = st.selectbox(t['s_sport'], sport_types)
-    
-    # 선택된 종목에 맞는 벤치마크 리스트업
     selected_bench = st.selectbox(t['s_data'], list(benchmarks[selected_sport].keys()))
     b_data = benchmarks[selected_sport][selected_bench]
     
@@ -98,12 +105,19 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# 6. 메인 분석 엔진 시뮬레이션
+# 6. 메인 딥러닝 분석 시뮬레이션
 if video_file and analyze_btn:
     with st.spinner('Synchronizing with Global Biomechanical Database...'):
-        score = 82 if "Marathon" in selected_sport else 65 # 경보일 경우 각도 미달로 점수 대폭 하락 설정
+        # 종목별 점수 차등화 로직
+        if "Sprint" in selected_sport:
+            score = 72
+        elif "Marathon" in selected_sport:
+            score = 82
+        else: # 경보
+            score = 65 
+            
         my_stats = [75, 68, 85, 70, 65] 
-        avg_angle = 155.9 # 사용자의 고정 데이터
+        avg_angle = 155.9 # 사용자의 고정 데이터 (시연용)
         target_angle = b_data['angle']
         gap = target_angle - avg_angle
         bench_name = selected_bench.split(" ")[1] if " " in selected_bench else selected_bench
@@ -118,7 +132,7 @@ if video_file and analyze_btn:
             domain={'x': [0, 1], 'y': [0, 1]}, 
             gauge={
                 'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
-                'bar': {'color': "#1A73E8" if score > 70 else "#D93025"}, # 70점 이하면 붉은색 경고
+                'bar': {'color': "#1A73E8" if score > 70 else "#D93025"},
                 'bgcolor': "white", 'borderwidth': 2, 'bordercolor': "#E8EAED",
                 'steps': [{'range': [0, 70], 'color': "#FCE8E6"}, {'range': [85, 100], 'color': "#E6F4EA"}],
                 'threshold': {'line': {'color': "#D93025", 'width': 4}, 'value': 95}
@@ -139,6 +153,7 @@ if video_file and analyze_btn:
         st.plotly_chart(fig_radar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # 📸 Vision HUD 오버레이
     st.markdown(f"""
         <div class="data-card" style="margin-top: 25px; border-top: 4px solid #F9AB00;">
             <h4 style="color: #202124; margin-top: 0;">{t['img_title']}</h4>
@@ -169,46 +184,68 @@ if video_file and analyze_btn:
         st.markdown('<div class="coaching-box">', unsafe_allow_html=True)
         tab_pro, tab_easy = st.tabs(["🎓 전문가 역학 리포트 (Pro)", "🎈 쉬운 코칭 (Easy)"])
         
-        # 💡 종목에 따른 다이나믹 피드백 로직
-        if "Marathon" in selected_sport:
-            # 기존 마라톤 피드백
+        # 💡 종목별 3단계 다이나믹 피드백 (단거리/마라톤/경보)
+        if "Sprint" in selected_sport:
             with tab_pro:
                 st.markdown(f"""
-                <h4 style="color:#1A73E8; margin-top:10px; margin-bottom:15px;">📋 마라톤 생체역학 정밀 진단</h4>
+                <h4 style="color:#1A73E8; margin-top:10px; margin-bottom:15px;">🚀 100m 스프린트 폭발력 진단</h4>
                 <p style="font-size: 0.95em; color: #5F6368; line-height: 1.6; margin-bottom: 15px;">
-                    도약(Push-off) 페이즈의 최대 무릎 신전 각도는 <span class="highlight-text">{avg_angle}°</span>로 산출되었습니다. 
-                    이는 목표 벤치마크({bench_name})의 최적화 기준선 {target_angle}° 대비 <span class="highlight-text">{gap:.1f}°의 편차</span>를 보이며, 대퇴사두근의 불완전 수축에 의한 추진 에너지 누수를 의미합니다. 특히 상하체 동기화 지수(팔치기)가 낮아 햄스트링에 과부하가 집중되고 있습니다.
+                    스프린트의 핵심인 도약(Take-off) 시 최대 무릎 신전 각도가 <span class="highlight-text">{avg_angle}°</span>로 측정되었습니다. 
+                    이는 세계 정상급 스플린터({target_angle}°) 대비 <span class="highlight-text">{gap:.1f}° 편차</span>를 보이며, 하퇴 삼두근과 대둔근의 <b>폭발적인 지면 발진력(Explosive Ground Force)</b>이 100% 발휘되지 못하고 조기 회수됨을 뜻합니다. 지면접촉시간(GCT) 지연의 원인이 됩니다.
                 </p>
-                <div style="font-size: 0.95em; color: #202124; background: #F8F9FA; padding: 15px; border-radius: 8px; border: 1px solid #E8EAED;">
-                    <b>[맞춤형 역학 교정 프로토콜]</b><br>
-                    1. <b>가동성:</b> 장요근 동적 스트레칭으로 고관절 신전 가동 범위 물리적 확장<br>
-                    2. <b>동기화:</b> 무릎 신전과 팔꿈치 후방 스윙(Arm Drive)의 1:1 리듬 매칭<br>
-                    3. <b>큐잉:</b> 중족골(발볼)로 지면을 끝까지 밀어내는 'Full Toe-off' 인지 제어
+                <div style="font-size: 0.95em; color: #202124; background: #E8F0FE; padding: 15px; border-radius: 8px; border: 1px solid #D2E3FC;">
+                    <b>[순발력 극대화 프로토콜]</b><br>
+                    1. <b>탄성 에너지:</b> 뎁스 점프(Depth Jump)를 통한 SSC(신장-단축 주기) 활성화<br>
+                    2. <b>상하체 동기화:</b> 지면 발진 순간, 반대쪽 팔꿈치를 뒤로 가장 강하고 짧게 끊어 치는 훈련<br>
+                    3. <b>큐잉:</b> 발바닥 전체가 아닌 '전족부(Forefoot)'로 육상 트랙을 부수듯 밀어낼 것
                 </div>
                 """, unsafe_allow_html=True)
             with tab_easy:
                 st.markdown(f"""
-                <h4 style="color:#D93025; margin-top:10px; margin-bottom:15px;">🏃‍♂️ AI 코치의 친절한 달리기 꿀팁!</h4>
+                <h4 style="color:#D93025; margin-top:10px; margin-bottom:15px;">🐆 치타처럼 쌩~ 날아가는 꿀팁!</h4>
                 <p style="font-size: 1.05em; color: #3C4043; line-height: 1.6;">
-                    <b>"다리와 팔을 시원하게 뻗어볼까요?"</b><br>
-                    지금 땅을 차고 나갈 때 내 무릎 각도는 <span class="highlight-text">{avg_angle}°</span>예요. 
-                    선수들({target_angle}°)처럼 다리를 쫙! 펴주면서, 동시에 <b>팔꿈치를 뒤로 경쾌하게 쳐주면</b> 훨씬 적은 힘으로 슝~ 하고 앞으로 날아갈 수 있어요!
+                    <b>"땅을 로켓처럼 쾅! 차고 나가야 해요!"</b><br>
+                    우사인 볼트 같은 세계 최고의 선수들은 땅을 찰 때 다리를 <span style="color:#F9AB00; font-weight:800;">{target_angle}°</span>까지 폭발적으로 뻗어요. 우리는 아직 <span class="highlight-text">{gap:.1f}° 만큼</span> 다리 힘을 덜 쓰고 있답니다.<br><br>
+                    발끝으로 땅을 <b>'쾅!'</b> 밀어내면서 <b>팔을 로켓 부스터처럼 뒤로 세게</b> 흔들어 보세요. 눈 깜짝할 사이에 도착해 있을 거예요!
                 </p>
                 """, unsafe_allow_html=True)
-        else:
-            # 🚨 경보(Race Walking) 특화 피드백 (파울 경고 중심)
+        elif "Marathon" in selected_sport:
             with tab_pro:
                 st.markdown(f"""
-                <h4 style="color:#D93025; margin-top:10px; margin-bottom:15px;">🚨 경보 규정(Rule) 위반 경고 감지</h4>
+                <h4 style="color:#1A73E8; margin-top:10px; margin-bottom:15px;">📋 마라톤 에너지 효율성 진단</h4>
                 <p style="font-size: 0.95em; color: #5F6368; line-height: 1.6; margin-bottom: 15px;">
-                    경보 종목의 핵심 판정 기준인 <b>'무릎 완전 신전 규정(Straight Leg Rule)'</b> 위반이 비전 알고리즘에 의해 감지되었습니다. 
-                    현재 접촉 페이즈의 무릎 각도가 <span class="highlight-text">{avg_angle}°</span>에 불과하여, 기준선(180°) 대비 <span class="highlight-text">{gap:.1f}°의 치명적인 편차(Bent Knee)</span>를 보입니다. 이는 공식 대회에서 즉각적인 레드카드(Red Card) 및 실격(DQ) 사유에 해당합니다.
+                    도약(Push-off) 페이즈의 최대 무릎 신전 각도는 <span class="highlight-text">{avg_angle}°</span>로 산출되었습니다. 
+                    이는 목표 벤치마크({bench_name})의 최적화 기준선 {target_angle}° 대비 <span class="highlight-text">{gap:.1f}°의 편차</span>를 보이며, 대퇴사두근의 불완전 수축에 의한 장거리 추진 에너지 누수를 의미합니다.
+                </p>
+                <div style="font-size: 0.95em; color: #202124; background: #F8F9FA; padding: 15px; border-radius: 8px; border: 1px solid #E8EAED;">
+                    <b>[효율성 개선 프로토콜]</b><br>
+                    1. <b>가동성:</b> 장요근 동적 스트레칭으로 고관절 신전 가동 범위 확장<br>
+                    2. <b>동기화:</b> 무릎 신전과 팔꿈치 후방 스윙(Arm Drive)의 1:1 리듬 매칭<br>
+                    3. <b>큐잉:</b> 중족골로 지면을 부드럽게 끝까지 밀어내는 'Full Toe-off'
+                </div>
+                """, unsafe_allow_html=True)
+            with tab_easy:
+                st.markdown(f"""
+                <h4 style="color:#D93025; margin-top:10px; margin-bottom:15px;">🏃‍♂️ 지치지 않고 오래 달리는 꿀팁!</h4>
+                <p style="font-size: 1.05em; color: #3C4043; line-height: 1.6;">
+                    <b>"다리와 팔을 시원하게 뻗어볼까요?"</b><br>
+                    지금 땅을 차고 나갈 때 무릎 각도는 <span class="highlight-text">{avg_angle}°</span>예요. 
+                    선수들처럼 다리를 쫙! 펴주면서 <b>팔꿈치를 뒤로 경쾌하게 쳐주면</b> 훨씬 적은 힘으로 슝~ 날아갈 수 있어요!
+                </p>
+                """, unsafe_allow_html=True)
+        else: # 경보
+            with tab_pro:
+                st.markdown(f"""
+                <h4 style="color:#D93025; margin-top:10px; margin-bottom:15px;">🚨 경보 규정(Rule) 위반 감지</h4>
+                <p style="font-size: 0.95em; color: #5F6368; line-height: 1.6; margin-bottom: 15px;">
+                    경보의 핵심 판정 기준인 <b>'무릎 완전 신전 규정(Straight Leg Rule)'</b> 위반이 감지되었습니다. 
+                    현재 접촉 페이즈 무릎 각도가 <span class="highlight-text">{avg_angle}°</span>에 불과하여, 기준선(180°) 대비 <span class="highlight-text">{gap:.1f}°의 치명적인 편차(Bent Knee)</span>를 보입니다. 공식 대회 실격 사유입니다.
                 </p>
                 <div style="font-size: 0.95em; color: #202124; background: #FCE8E6; padding: 15px; border-radius: 8px; border: 1px solid #FAD1D0;">
-                    <b>[경보 특화 폼 교정 프로토콜]</b><br>
-                    1. <b>착지 제어:</b> 발뒤꿈치가 지면에 닿는 순간부터 수직이 될 때까지 무릎 관절을 100% 락킹(Locking) 상태로 유지하십시오.<br>
-                    2. <b>골반 롤링(Pelvic Rotation):</b> 좁아진 보폭을 무릎이 아닌, 골반의 전후 수평 회전을 극대화하여 극복해야 합니다.<br>
-                    3. <b>상체 크로스 암(Cross-Arm):</b> 골반의 강한 회전을 제어하기 위해 팔을 가슴 안쪽으로 강하게 치며 코어 밸런스를 잡으세요.
+                    <b>[파울 방지 프로토콜]</b><br>
+                    1. 착지 시부터 수직이 될 때까지 무릎 관절 100% 락킹(Locking) 유지<br>
+                    2. 보폭 유지를 위한 골반 전후 수평 회전(Pelvic Rotation) 극대화<br>
+                    3. 코어 밸런스를 잡기 위한 크로스 암(Cross-Arm) 상체 제어
                 </div>
                 """, unsafe_allow_html=True)
             with tab_easy:
@@ -216,10 +253,8 @@ if video_file and analyze_btn:
                 <h4 style="color:#D93025; margin-top:10px; margin-bottom:15px;">🚶‍♂️ 앗! 삐익- 반칙(파울)이에요!</h4>
                 <p style="font-size: 1.05em; color: #3C4043; line-height: 1.6;">
                     <b>"경보에서는 무릎이 구부러지면 안 돼요!"</b><br>
-                    경보 선수들은 걸을 때 다리가 180°로 일자(ㅡ)가 되도록 쫙 펴야 해요. 
-                    지금 우리는 무릎이 <span class="highlight-text">{avg_angle}°</span>로 굽혀져 있어서 심판에게 경고를 받을 수 있어요.<br><br>
-                    <b>✨ 모델처럼 걷기 미션 ✨</b><br>
-                    골반을 앞뒤로 씰룩~쌜룩~ 크게 흔들면서, 앞발이 땅에 닿을 때는 <b>다리 뒷부분이 팽팽해질 정도로 무릎을 쫙! 펴고</b> 걸어볼까요?
+                    다리가 180°로 일자(ㅡ)가 되도록 쫙 펴야 해요. 
+                    지금 우리는 무릎이 <span class="highlight-text">{avg_angle}°</span>로 굽혀져 있어서 심판에게 경고를 받을 수 있어요!
                 </p>
                 """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -234,27 +269,35 @@ st.markdown(f"""
             {t['vision_desc']}
         </p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <span style="background: #E8F0FE; color: #1A73E8; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9em; border: 1px solid #D2E3FC;">#Track_And_Field_AI</span>
             <span style="background: #E8F0FE; color: #1A73E8; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9em; border: 1px solid #D2E3FC;">#Smart_Glass_HUD</span>
             <span style="background: #E8F0FE; color: #1A73E8; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9em; border: 1px solid #D2E3FC;">#Global_Rule_Judging</span>
-            <span style="background: #E8F0FE; color: #1A73E8; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9em; border: 1px solid #D2E3FC;">#HeartRate_Audio_Sync</span>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
-# 8. 🧪 피드백 연구소 섹션
+# 8. 🧪 구글 엑셀 실시간 연동 (안전망 유지)
 st.markdown("---")
 st.markdown('<div class="data-card" style="margin-bottom: 50px;">', unsafe_allow_html=True)
 st.markdown(f"<h3 style='color: #202124;'>{t['f_title']}</h3>", unsafe_allow_html=True)
 st.write(f"<span style='color: #5F6368;'>{t['f_desc']}</span>", unsafe_allow_html=True)
 
 with st.form(key='marathon_ai_lab_form', clear_on_submit=True):
-    user_comment = st.text_area("연구소로 데이터 전송 (Data Submission)", placeholder="예: '경보 파울 판정 기능이 아주 유용하네요!'")
+    user_comment = st.text_area("연구소로 데이터 전송 (Data Submission)", placeholder="예: '100m 단거리 분석 기능으로 스타트 자세 교정에 큰 도움이 되었습니다!'")
     submit_button = st.form_submit_button(label="의견 전송 및 세계 표준 구축 참여 (Submit)", type="primary")
 
     if submit_button:
         if user_comment:
-            st.balloons()
-            st.success(t['f_success'])
+            try:
+                url = "https://docs.google.com/forms/d/e/1FAIpQLScq5MZNK2TmD7TknmRBnLqm7j0ci9FQY4GwBD4NmZTT8t0Lzg/formResponse"
+                data = {"entry.503694872": user_comment}
+                encoded_data = urllib.parse.urlencode(data).encode("utf-8")
+                req = urllib.request.Request(url, data=encoded_data)
+                urllib.request.urlopen(req)
+                st.balloons()
+                st.success(t['f_success'])
+            except Exception as e:
+                st.error("⚠️ 데이터 전송 중 오류가 발생했습니다.")
         else:
             st.warning("의견을 먼저 입력해 주세요. (Please enter your feedback first.)")
 st.markdown('</div>', unsafe_allow_html=True)
