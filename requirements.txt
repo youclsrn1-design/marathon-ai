@@ -1,10 +1,2 @@
-streamlit
 opencv-python-headless
 mediapipe
-numpy
-pandas
-plotly
-opencv-python-headless
-mediapipe
-
-
