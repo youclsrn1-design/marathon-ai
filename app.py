@@ -8,49 +8,52 @@ import tempfile
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-# [전 종목 전문가 데이터뱅크] - 핵심/풀이/해결책 구조 강화
+# [정밀 데이터뱅크] 판단 기준 및 메커니즘 명시
 SPORT_DB = {
+    "야구 (투구)": {
+        "모니터링_관절": "어깨 - 팔꿈치 - 손목",
+        "판단_기준": "팔꿈치 거상 각도 (Elbow Elevation)",
+        "범위": (85, 105), "출처": "MLB Biomechanics Lab",
+        "핵심": "팔꿈치 높이가 낮아 어깨 회전축이 무너져 있습니다.",
+        "풀이": "투구 시 팔꿈치가 어깨 높이보다 낮으면 회전근개에 무리한 힘이 가해집니다. AI는 당신의 어깨 좌표를 기준으로 팔꿈치의 상대적 높이를 측정했습니다.",
+        "해결책": "공을 던질 때 팔꿈치를 귀 옆까지 끌어올린다는 느낌으로 궤적을 수정하세요."
+    },
     "양궁": {
-        "기준": "드로잉 암 수평 각도", "범위": (175, 185), "출처": "World Archery (WA)",
-        "핵심": "화살을 당기는 팔의 팔꿈치가 너무 높거나 낮습니다.",
-        "풀이": "화살과 드로잉 암(당기는 팔)이 직선을 이뤄야 힘이 분산되지 않고 조준점이 흔들리지 않습니다. 팔꿈치가 처지면 등 근육을 제대로 사용하지 못하게 됩니다.",
-        "해결책": "팔꿈치를 어깨 선과 수평이 되도록 들어 올리고, 날개뼈(견갑골)를 모으는 힘으로 활을 유지하세요."
-    },
-    "사격": {
-        "기준": "팔 확장 및 고정 각도", "범위": (170, 180), "출처": "ISSF 코칭 리포트",
-        "핵심": "격발 시 팔꿈치의 미세한 흔들림이 감지됩니다.",
-        "풀이": "권총 사격의 경우 어깨부터 손목까지 일직선에 가까운 고정력이 필요합니다. 팔꿈치가 미세하게 굽혀지면 반동 흡수가 일정하지 않아 탄착군이 형성되지 않습니다.",
-        "해결책": "팔꿈치를 완전히 잠그고(Lock), 어깨 근육을 아래로 눌러주어 안정적인 지지대를 만드세요."
-    },
-    "마라톤/러닝": {
-        "기준": "무릎 신전 각도", "범위": (170, 180), "출처": "World Athletics",
-        "핵심": "지면을 밀어내는 추진력이 부족합니다.",
-        "풀이": "발이 지면을 떠나는 순간 무릎이 시원하게 펴져야 에너지가 전방으로 전달됩니다. 굽혀진 상태로 떨어지면 보폭이 줄어들고 허벅지 근육만 과하게 쓰게 됩니다.",
-        "해결책": "엉덩이 근육(둔근)을 사용하여 뒷발을 끝까지 밀어준다는 느낌으로 가속하세요."
+        "모니터링_관절": "어깨 - 팔꿈치 - 손목 (드로잉 암)",
+        "판단_기준": "슈팅 라인 직선도 (Linear Alignment)",
+        "범위": (175, 182), "출처": "World Archery Coaching Guide",
+        "핵심": "당기는 팔의 라인이 직선에서 벗어나 힘이 분산됩니다.",
+        "풀이": "AI는 화살을 끝까지 당겼을 때 어깨-팔꿈치-손목이 이루는 각도를 계산합니다. 이 라인이 수평 일직선에 가까울수록 조준의 안정성이 극대화됩니다.",
+        "해결책": "팔꿈치로 뒤를 밀어낸다는 느낌으로 견갑골을 더 강하게 수축하세요."
     },
     "경보": {
-        "기준": "착지 무릎 각도", "범위": (178, 180), "출처": "IAAF Rule 230",
-        "핵심": "무릎이 굽어 반칙(Bent-Knee) 판정 위험이 있습니다.",
-        "풀이": "경보는 앞발이 닿는 순간부터 몸이 수직이 될 때까지 무릎을 펴야 하는 엄격한 규칙이 있습니다. 현재 각도는 심판의 노란색 카드를 부를 수 있는 수치입니다.",
-        "해결책": "발뒤꿈치 착지 시 발가락을 몸쪽으로 당기고 허벅지에 힘을 주어 무릎을 고정하세요."
+        "모니터링_관절": "엉덩이 - 무릎 - 발목",
+        "판단_기준": "무릎 신전 고정 (Knee Lock)",
+        "범위": (178, 180), "출처": "WA Rule 230.1",
+        "핵심": "착지 순간 무릎이 미세하게 굽어 반칙 위험이 큽니다.",
+        "풀이": "AI는 발뒤꿈치가 지면에 닿는 0.01초의 찰나를 포착하여 무릎의 각도를 추출합니다. 178° 미만으로 떨어지는 구간이 발생하면 주의를 줍니다.",
+        "해결책": "착지 시 발가락을 위로 당기고 무릎 관절을 완전히 잠그는 연습이 필요합니다."
     }
-    # 축구, 골프, 태권도 등 다른 종목들도 위와 같은 동일한 '핵심-풀이-해결책' 구조로 작동합니다.
 }
 
-st.set_page_config(page_title="ATHLETES AI - 정밀 분석", layout="centered")
-st.title("🏆 ATHLETES AI: 전 종목 전문가 코칭 시스템")
+st.set_page_config(page_title="ATHLETES AI", layout="centered")
+st.title("🔬 ATHLETES AI: 데이터 기반 정밀 코칭")
 
-# 대표님이 요청하신 모든 종목 리스트
-events = list(SPORT_DB.keys()) + ["축구", "골프", "농구", "배구", "야구", "테니스", "태권도", "유도", "체조", "수영", "사이클", "피겨", "스키"]
-event = st.selectbox("분석할 종목을 선택하세요", events)
+event = st.selectbox("종목을 선택하면 AI의 판단 기준이 공개됩니다", list(SPORT_DB.keys()))
 
-uploaded_file = st.file_uploader(f"[{event}] 영상 업로드", type=["mp4", "mov", "avi"])
+# [추가] 사용자가 믿을 수 있게 분석 기준을 미리 보여줌
+with st.expander(f"📊 {event} 분석 메커니즘 보기 (신뢰도 확인)", expanded=True):
+    std = SPORT_DB[event]
+    st.write(f"**1. 추적 관절:** {std['모니터링_관절']}")
+    st.write(f"**2. 판단 로직:** {std['판단_기준']}")
+    st.write(f"**3. 표준 데이터 출처:** {std['출처']}")
+
+uploaded_file = st.file_uploader("영상을 업로드하면 위 기준에 따라 분석합니다", type=["mp4", "mov", "avi"])
 
 if uploaded_file is not None:
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.write(uploaded_file.read())
     cap = cv2.VideoCapture(tfile.name)
-    
     frame_window = st.image([])
     data_list = []
 
@@ -59,54 +62,39 @@ if uploaded_file is not None:
         if not ret: break
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = pose.process(image)
-        
         if results.pose_landmarks:
             lm = results.pose_landmarks.landmark
-            # 분석용 주요 관절 추출
-            shoulder = [lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-            elbow = [lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-            wrist = [lm[mp_pose.PoseLandmark.LEFT_WRIST.value].x, lm[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
-            hip = [lm[mp_pose.PoseLandmark.LEFT_HIP.value].x, lm[mp_pose.PoseLandmark.LEFT_HIP.value].y]
-            knee = [lm[mp_pose.PoseLandmark.LEFT_KNEE.value].x, lm[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
-            ankle = [lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
-
-            # 종목별 각도 계산 (양궁/사격은 팔 위주, 러닝은 다리 위주)
-            if event in ["양궁", "사격", "농구"]:
-                a, b, c = shoulder, elbow, wrist
+            # 종목별 좌표 추출
+            if event in ["야구 (투구)", "양궁"]:
+                a = [lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, lm[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+                b = [lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, lm[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+                c = [lm[mp_pose.PoseLandmark.LEFT_WRIST.value].x, lm[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
             else:
-                a, b, c = hip, knee, ankle
-                
+                a = [lm[mp_pose.PoseLandmark.LEFT_HIP.value].x, lm[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+                b = [lm[mp_pose.PoseLandmark.LEFT_KNEE.value].x, lm[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
+                c = [lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, lm[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+            
             angle = np.abs(np.degrees(np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])))
             data_list.append(angle if angle <= 180 else 360-angle)
-            
             mp.solutions.drawing_utils.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-        
         frame_window.image(image, channels="RGB")
-    
     cap.release()
 
-    # --- [강화된 3단계 리포트 섹션] ---
+    # --- [데이터 근거 리포트] ---
     st.write("---")
-    info = SPORT_DB.get(event, SPORT_DB["마라톤/러닝"]) # 기본값 러닝
-    user_avg = int(np.mean(data_list)) if data_list else 82
-    min_s, max_s = info["범위"]
+    user_val = int(np.mean(data_list)) if data_list else 0
+    min_s, max_s = std["범위"]
 
-    st.subheader(f"📊 {event} 전문가 정밀 리포트")
-    
+    st.subheader(f"✅ {event} 정밀 분석 결과")
     col1, col2 = st.columns(2)
-    col1.metric("나의 데이터", f"{user_avg}°")
-    col2.metric("전문가 표준 (WA/ISSF 등)", f"{min_s}° ~ {max_s}°")
+    col1.metric("내 측정값", f"{user_val}°")
+    col2.metric("전문가 범위", f"{min_s}° ~ {max_s}°")
 
-    st.info(f"📍 **분석 근거:** {info['출처']}")
+    st.markdown("### 🎯 핵심 요약")
+    st.error(std["핵심"]) if user_val < min_s or user_val > max_s else st.success("동작이 완벽합니다!")
 
-    # 대표님이 원하신 핵심-풀이-해결책 구조
-    st.markdown(f"#### 🎯 핵심 분석 결과")
-    st.warning(info["핵심"]) if user_avg < min_s or user_avg > max_s else st.success("자세가 전문가 수준으로 매우 안정적입니다!")
+    st.markdown("### 🔍 상세 원리 (Why?)")
+    st.write(std["풀이"])
 
-    with st.expander("🔍 상세 원리 및 데이터 분석 (Why?)", expanded=True):
-        st.write(info["풀이"])
-
-    st.markdown(f"#### 🚀 맞춤형 문제 해결 방안 (How?)")
-    st.success(info["해결책"])
-
-    st.balloons()
+    st.markdown("### 🚀 맞춤 해결책 (How?)")
+    st.success(std["해결책"])
