@@ -7,114 +7,78 @@ import urllib.request
 # 1. 시스템 기본 설정
 st.set_page_config(page_title="Global Athletics AI | Foundation", layout="wide", initial_sidebar_state="expanded")
 
-# 2. 글로벌 다국어 UI 및 코칭 언어팩 (올림픽 5대 언어)
+# 2. 글로벌 UI 언어팩 (5대 언어)
 ui_langs = {
-    "🇰🇷 한국어": {
-        "title": "ATHLETICS AI FOUNDATION", "sub": "글로벌 육상 전 종목 생체역학 교육 시스템", "toss": "Toss ID: ATHLETICS AI",
-        "s_head": "⚙️ 시스템 설정", "s_lang": "🌐 시스템 언어", "s_cat": "🏟️ 육상 카테고리", "s_sport": "🏃‍♂️ 세부 종목", "s_data": "📊 비교 벤치마크", "s_up": "측면 영상 파일 선택 (10초 이내)", "s_btn": "🚀 AI 정밀 분석 및 지도법 생성", "r_title": "🔬 생체역학 진단 및 교육 리포트",
-        "img_title": "📸 비전 AI 관절 추출 및 종목별 궤적 대조",
-        "tab_pro": "🎓 전문가 심화 학습", "tab_kids": "🎈 어린이 훈련 지도법",
-        "c_sprint_pro": "<b>[단거리 역학]</b> 도약 시 무릎 신전이 {avg_angle}°에 그쳐 {gap:.1f}°의 조기 회수가 관찰됩니다. SSC(신장-단축 주기) 에너지가 누수 중입니다. <br><b>[훈련법]</b> 뎁스 점프를 통한 발목 반응성 극대화",
-        "c_sprint_kids": "<b>[용암 밟기 놀이]</b> 무릎이 덜 펴졌어요! 바닥이 뜨거운 용암이라고 생각하고 앞꿈치로만 잽싸게 땅을 치고 지나가며 로켓처럼 튀어 나가세요!",
-        "c_mara_pro": "<b>[마라톤 효율]</b> 무릎 완전 신전이 이루어지지 않아 {gap:.1f}° 편차 발생. GRF가 수직으로 분산됩니다.<br><b>[훈련법]</b> 장요근 동적 스트레칭 및 싱글 레그 데드리프트 수행",
-        "c_mara_kids": "<b>[머리 위 물컵 지키기]</b> 쿵쾅거리면 물이 쏟아져요! 위아래로 흔들리지 말고 부드럽게 미끄러지듯 닌자처럼 사뿐사뿐 달려보세요.",
-        "c_jump_pro": "<b>[도약 역학]</b> 마지막 걸음(Penultimate Step)에서 무게중심 하강비가 부족합니다.<br><b>[훈련법]</b> 힌지 제어를 통한 의도적 무게중심 하강 및 상향 스윙 매칭 훈련",
-        "c_jump_kids": "<b>[마법의 징검다리]</b> 개구리처럼 뛰기 직전 무릎을 살짝 더 굽히고, 마지막 발이 닿는 순간 '쾅!' 밟으며 만세! 하고 솟아오르세요.",
-        "c_throw_pro": "<b>[투척 역학]</b> 리드 레그의 블록킹 붕괴로 키네틱 체인이 단절되었습니다.<br><b>[훈련법]</b> 브레이싱 훈련 및 흉추 가동성 극대화를 통한 역학적 꼬임 확장",
-        "c_throw_kids": "<b>[인간 투석기 놀이]</b> 얼음땡 던지기! 던지기 직전 앞발을 딛으며 '얼음!' 멈추고, 상체만 채찍처럼 휙! 휘둘러 던지세요.",
-        "vision_title": "🛰️ Future Mission: 인류의 모든 움직임을 데이터화하다", "vision_desc": "본 시스템은 육상 15개 전 종목의 생체역학을 하나의 AI로 통합한 '파운데이션 모델'입니다.",
-        "f_title": "🧪 ATHLETICS 연구소", "f_desc": "당신의 의견이 더 똑똑한 AI 코치를 만듭니다."
+    "🇰🇷 한국어": {"title": "ATHLETICS AI FOUNDATION", "sub": "글로벌 육상 전 종목 생체역학 교육 시스템", "toss": "Toss ID: ATHLETICS AI", "s_head": "⚙️ 시스템 설정", "s_lang": "🌐 시스템 언어", "s_cat": "🏟️ 육상 카테고리", "s_sport": "🏃‍♂️ 세부 종목", "s_data": "📊 비교 벤치마크 (국가별)", "s_up": "측면 영상 파일 선택 (10초 이내)", "s_btn": "🚀 AI 정밀 분석 및 지도법 생성", "r_title": "🔬 생체역학 진단 및 교육 리포트", "img_title": "📸 비전 AI 관절 추출 및 종목별 궤적 대조", "tab_pro": "🎓 전문가 심화 학습", "tab_kids": "🎈 어린이 훈련 지도법", "vision_title": "🛰️ Future Mission: 인류의 모든 움직임을 데이터화하다", "vision_desc": "마라톤, 100m, 창던지기 등 육상 15개 전 종목의 국가별 생체역학 DB를 스마트 안경(AR)에 실시간 투사하는 파운데이션 모델입니다.", "f_title": "🧪 ATHLETICS 연구소", "f_desc": "당신의 의견이 더 똑똑한 AI 코치를 만듭니다.", "f_success": "✅ 의견이 AI 연구소로 성공적으로 전송되었습니다!",
+        "c_sprint_pro": "<b>[단거리 역학]</b> 도약 시 무릎 신전이 {avg_angle}°에 그쳐 {gap:.1f}° 조기 회수 관찰. SSC 에너지 누수.<br><b>[훈련]</b> 뎁스 점프로 발목 강성 강화", "c_sprint_kids": "<b>[용암 밟기 놀이]</b> 바닥이 뜨거운 용암이에요! 앞꿈치로만 잽싸게 땅을 치고 로켓처럼 튀어 나가세요!",
+        "c_mara_pro": "<b>[마라톤 효율]</b> 불완전 신전으로 {gap:.1f}° 편차. GRF 수직 분산.<br><b>[훈련]</b> 장요근 동적 스트레칭 및 코어 안정화", "c_mara_kids": "<b>[머리 위 물컵 지키기]</b> 쿵쾅거리면 물이 쏟아져요! 위아래로 흔들리지 말고 닌자처럼 사뿐사뿐 달리세요.",
+        "c_jump_pro": "<b>[도약 역학]</b> 마지막 걸음에서 무게중심 하강비 부족.<br><b>[훈련]</b> 힌지 제어 및 상향 스윙 매칭", "c_jump_kids": "<b>[마법의 징검다리]</b> 뛰기 직전 무릎을 살짝 더 굽히고, 마지막에 '쾅!' 밟으며 만세! 하고 솟아오르세요.",
+        "c_throw_pro": "<b>[투척 역학]</b> 리드 레그 블록킹 붕괴로 키네틱 체인 단절.<br><b>[훈련]</b> 브레이싱 훈련 및 흉추 가동성 확장", "c_throw_kids": "<b>[인간 투석기 놀이]</b> 던지기 직전 앞발을 딛으며 '얼음!' 멈추고, 상체만 채찍처럼 휙! 던지세요.", "c_walk_pro": "<b>[경보 판정]</b> Straight Leg Rule 위반 감지. {gap:.1f}° 편차로 파울 위험.<br><b>[훈련]</b> 착지 시 무릎 관절 100% 락킹 훈련", "c_walk_kids": "<b>[모델 걷기 놀이]</b> 경보에서는 무릎이 굽혀지면 반칙이에요! 앞다리를 쭉쭉 펴고 골반을 흔들며 걸어봐요!"
     },
-    "🇺🇸 English": {
-        "title": "ATHLETICS AI FOUNDATION", "sub": "Global Track & Field Biomechanics System", "toss": "Powered by ATHLETICS AI",
-        "s_head": "⚙️ System Config", "s_lang": "🌐 UI Language", "s_cat": "🏟️ Category", "s_sport": "🏃‍♂️ Event", "s_data": "📊 Benchmark Target", "s_up": "Select Video (Max 10s)", "s_btn": "🚀 Run AI Analysis", "r_title": "🔬 Biometric Diagnostic Report",
-        "img_title": "📸 Vision AI Skeletal Tracking",
-        "tab_pro": "🎓 Pro Biomechanics", "tab_kids": "🎈 Kids Play & Drill",
-        "c_sprint_pro": "<b>[Sprint Kinematics]</b> Knee extension at {avg_angle}° shows {gap:.1f}° early recovery. SSC energy is leaking.<br><b>[Drill]</b> Depth jumps for maximum ankle stiffness.",
-        "c_sprint_kids": "<b>[Hot Lava Game]</b> Pretend the ground is hot lava! Touch it quickly with your toes and blast off like a rocket!",
-        "c_mara_pro": "<b>[Marathon Efficiency]</b> Lack of triple extension causes a {gap:.1f}° deviation. Vertical GRF dispersion noted.<br><b>[Drill]</b> Iliopsoas stretching & Single-leg deadlifts.",
-        "c_mara_kids": "<b>[Water Cup Challenge]</b> Imagine a full cup of water on your head! Don't bounce up and down; glide smoothly like a ninja.",
-        "c_jump_pro": "<b>[Jump Mechanics]</b> Insufficient COM drop in the penultimate step.<br><b>[Drill]</b> Hinge control and upward arm drive synchronization.",
-        "c_jump_kids": "<b>[Frog Jump]</b> Bend your knees a bit more on the last step, stomp hard, and throw your arms up like Superman!",
-        "c_throw_pro": "<b>[Throw Mechanics]</b> Weak blocking leg breaks the kinetic chain.<br><b>[Drill]</b> Bracing drills and thoracic mobility for X-Factor.",
-        "c_throw_kids": "<b>[Human Catapult]</b> Play Freeze-Throw! Plant your front foot, yell 'Freeze!', and whip your upper body like a catapult.",
-        "vision_title": "🛰️ Future Mission: Digitizing Human Movement", "vision_desc": "A Foundation Model integrating biomechanics for all 15 Track & Field events.",
-        "f_title": "🧪 ATHLETICS AI Lab", "f_desc": "Your feedback builds a smarter AI Coach."
-    },
-    "🇯🇵 日本語": {
-        "title": "ATHLETICS AI FOUNDATION", "sub": "グローバル陸上バイオメカニクスシステム", "toss": "Toss ID: ATHLETICS AI",
-        "s_head": "⚙️ 設定", "s_lang": "🌐 言語", "s_cat": "🏟️ カテゴリ", "s_sport": "🏃‍♂️ 種目", "s_data": "📊 比較データ", "s_up": "動画を選択", "s_btn": "🚀 AI分析を実行", "r_title": "🔬 バイオメカニクス診断レポート",
-        "img_title": "📸 AI骨格トラッキング",
-        "tab_pro": "🎓 プロフェッショナル分析", "tab_kids": "🎈 キッズ向け練習法",
-        "c_sprint_pro": "<b>[スプリント]</b> 膝の伸展が{avg_angle}°で、{gap:.1f}°の早期回収が見られます。SSCのエネルギーロス。<br><b>[練習]</b> デプスジャンプで足首の剛性を強化。",
-        "c_sprint_kids": "<b>[マグマジャンプ]</b> 床が熱いマグマだと思って、つま先で一瞬だけ触れてロケットみたいに飛び出そう！",
-        "c_mara_pro": "<b>[マラソン]</b> 完全伸展不足（{gap:.1f}°の偏差）。GRFが垂直に分散。<br><b>[練習]</b> 腸腰筋ストレッチと体幹安定化トレーニング。",
-        "c_mara_kids": "<b>[忍者走り]</b> 頭の上に水が入ったコップを乗せていると想像して！上下に揺れずに、忍者のように静かに走ろう。",
-        "c_jump_pro": "<b>[跳躍]</b> 踏切前の重心降下が不十分です。<br><b>[練習]</b> 踏切前の沈み込みと腕の振り上げの連動トレーニング。",
-        "c_jump_kids": "<b>[スーパーマンジャンプ]</b> 最後の1歩でカエルみたいに膝を曲げて、バーン！と踏み込んでバンザイして飛ぼう！",
-        "c_throw_pro": "<b>[投擲]</b> ブロッキングの崩れによりキネティックチェーンが切断。<br><b>[練習]</b> ブレーシングと胸椎の可動域拡張トレーニング。",
-        "c_throw_kids": "<b>[人間投石機]</b> 投げる瞬間に前足を『ピタッ』と止めて、上半身だけムチのように振って投げよう！",
-        "vision_title": "🛰️ Future Mission: 人類の動きをデータ化", "vision_desc": "陸上15種目を統合するAIファウンデーションモデルです。",
-        "f_title": "🧪 AI研究所", "f_desc": "あなたのフィードバックがAIを賢くします。"
-    },
-    "🇨🇳 中文": {
-        "title": "ATHLETICS AI FOUNDATION", "sub": "全球田径生物力学教育系统", "toss": "Toss ID: ATHLETICS AI",
-        "s_head": "⚙️ 系统设置", "s_lang": "🌐 语言", "s_cat": "🏟️ 类别", "s_sport": "🏃‍♂️ 项目", "s_data": "📊 对比基准", "s_up": "选择视频 (最多10秒)", "s_btn": "🚀 运行 AI 分析", "r_title": "🔬 生物力学诊断报告",
-        "img_title": "📸 视觉 AI 骨骼追踪",
-        "tab_pro": "🎓 专家级分析", "tab_kids": "🎈 儿童训练法",
-        "c_sprint_pro": "<b>[短跑力学]</b> 膝关节伸展仅为 {avg_angle}°，存在 {gap:.1f}° 的提前回收。SSC 能量正在流失。<br><b>[训练]</b> 通过深度跳跃最大化踝关节刚度。",
-        "c_sprint_kids": "<b>[岩浆跳跃]</b> 想象地板是滚烫的岩浆！只用脚尖轻轻点地，像火箭一样冲出去！",
-        "c_mara_pro": "<b>[马拉松效率]</b> 未实现完全伸展，存在 {gap:.1f}° 偏差。地面反作用力垂直分散。<br><b>[训练]</b> 髂腰肌动态拉伸和单腿硬拉。",
-        "c_mara_kids": "<b>[头顶水杯]</b> 想象头上顶着一杯水！不要上下颠簸，像忍者一样平稳地奔跑。",
-        "c_jump_pro": "<b>[跳跃力学]</b> 倒数第二步重心下降不足。<br><b>[训练]</b> 练习重心下降与手臂上摆的同步。",
-        "c_jump_kids": "<b>[青蛙跳]</b> 在最后一步像青蛙一样稍微弯曲膝盖，用力踩地，举起双手像超人一样飞起来！",
-        "c_throw_pro": "<b>[投掷力学]</b> 前腿制动不足破坏了动力链。<br><b>[训练]</b> 制动训练和增加胸椎活动度。",
-        "c_throw_kids": "<b>[人体投石机]</b> 玩“木头人”游戏！前脚落地时喊“停！”，然后像鞭子一样挥动上半身投掷。",
-        "vision_title": "🛰️ Future Mission: 数字化人类运动", "vision_desc": "整合15个田径项目的 AI 基础模型。",
-        "f_title": "🧪 AI 实验室", "f_desc": "您的反馈将建立更智能的 AI 教练。"
-    },
-    "🇪🇸 Español": {
-        "title": "ATHLETICS AI FOUNDATION", "sub": "Sistema Global de Biomecánica", "toss": "Toss ID: ATHLETICS AI",
-        "s_head": "⚙️ Configuración", "s_lang": "🌐 Idioma", "s_cat": "🏟️ Categoría", "s_sport": "🏃‍♂️ Evento", "s_data": "📊 Referencia", "s_up": "Subir Video", "s_btn": "🚀 Ejecutar Análisis", "r_title": "🔬 Reporte Biomecánico",
-        "img_title": "📸 Seguimiento de Esqueleto AI",
-        "tab_pro": "🎓 Análisis Profesional", "tab_kids": "🎈 Entrenamiento para Niños",
-        "c_sprint_pro": "<b>[Mecánica de Sprint]</b> Extensión de rodilla a {avg_angle}°. Recuperación temprana de {gap:.1f}°. Fuga de energía SSC.<br><b>[Ejercicio]</b> Saltos de profundidad para rigidez del tobillo.",
-        "c_sprint_kids": "<b>[Juego de Lava]</b> ¡Imagina que el suelo es lava! Toca rápido con la punta del pie y despega como un cohete.",
-        "c_mara_pro": "<b>[Eficiencia Maratón]</b> Desviación de {gap:.1f}° por falta de triple extensión. Dispersión vertical de GRF.<br><b>[Ejercicio]</b> Estiramiento de psoas y peso muerto a una pierna.",
-        "c_mara_kids": "<b>[Vaso de Agua]</b> ¡Imagina un vaso de agua en tu cabeza! No rebotes, corre suave como un ninja.",
-        "c_jump_pro": "<b>[Salto]</b> Caída insuficiente del centro de masa en el penúltimo paso.<br><b>[Ejercicio]</b> Sincronización de caída y balanceo de brazos.",
-        "c_jump_kids": "<b>[Salto de Rana]</b> ¡Dobla las rodillas en el último paso, pisa fuerte y levanta los brazos como Superman!",
-        "c_throw_pro": "<b>[Lanzamiento]</b> El bloqueo débil rompe la cadena cinética.<br><b>[Ejercicio]</b> Ejercicios de bloqueo y movilidad torácica.",
-        "c_throw_kids": "<b>[Catapulta]</b> ¡Planta tu pie delantero, quédate congelado y lanza la parte superior de tu cuerpo como un látigo!",
-        "vision_title": "🛰️ Misión Futura: Digitalizar el Movimiento", "vision_desc": "Modelo fundacional que integra la biomecánica de 15 eventos de atletismo.",
-        "f_title": "🧪 Laboratorio AI", "f_desc": "Tus comentarios construyen un entrenador AI más inteligente."
+    "🇺🇸 English": {"title": "ATHLETICS AI FOUNDATION", "sub": "Global Track & Field Biomechanics System", "toss": "Powered by ATHLETICS AI", "s_head": "⚙️ System Config", "s_lang": "🌐 UI Language", "s_cat": "🏟️ Category", "s_sport": "🏃‍♂️ Event", "s_data": "📊 Benchmark (By Country)", "s_up": "Select Video (Max 10s)", "s_btn": "🚀 Run AI Analysis", "r_title": "🔬 Biometric Diagnostic Report", "img_title": "📸 Vision AI Skeletal Tracking", "tab_pro": "🎓 Pro Biomechanics", "tab_kids": "🎈 Kids Drill", "vision_title": "🛰️ Future Mission: Digitizing Human Movement", "vision_desc": "A Foundation Model projecting country-specific biomechanics for 15 events into AR Smart Glasses.", "f_title": "🧪 ATHLETICS AI Lab", "f_desc": "Your feedback builds a smarter AI.", "f_success": "✅ Feedback submitted successfully!",
+        "c_sprint_pro": "<b>[Sprint]</b> Knee ext at {avg_angle}°. {gap:.1f}° early recovery. SSC leak.<br><b>[Drill]</b> Depth jumps for ankle stiffness.", "c_sprint_kids": "<b>[Hot Lava]</b> The ground is hot lava! Touch quickly with toes and blast off!",
+        "c_mara_pro": "<b>[Marathon]</b> {gap:.1f}° deviation. Vertical GRF dispersion.<br><b>[Drill]</b> Iliopsoas stretch & Single-leg deadlifts.", "c_mara_kids": "<b>[Water Cup]</b> Imagine a water cup on your head! Don't bounce, glide like a ninja.",
+        "c_jump_pro": "<b>[Jump]</b> Insufficient COM drop in penultimate step.<br><b>[Drill]</b> Hinge control and upward arm drive.", "c_jump_kids": "<b>[Frog Jump]</b> Bend knees on the last step, stomp, and fly like Superman!",
+        "c_throw_pro": "<b>[Throw]</b> Weak blocking breaks kinetic chain.<br><b>[Drill]</b> Bracing drills and thoracic mobility.", "c_throw_kids": "<b>[Catapult]</b> Plant front foot, yell 'Freeze!', and whip your upper body!", "c_walk_pro": "<b>[Race Walk]</b> Straight Leg Rule violation. {gap:.1f}° bent knee.<br><b>[Drill]</b> 100% knee locking on contact.", "c_walk_kids": "<b>[Model Walk]</b> Keep your front leg completely straight and swing your hips!"
     }
 }
 
-# 3. 카테고리 및 데이터베이스 (표준화 유지)
+# 3. 🏟️ 육상 전 종목 카테고리
 categories = {
-    "Track (달리기/허들)": {
-        "metrics": ['Knee Ext.', 'GCT', 'Oscillation', 'Pelvic Bal.', 'Arm Sync'],
-        "sports": ["100m Sprint", "400m Sprint", "Marathon", "Hurdle", "Race Walking"]
+    "Track (트랙/달리기)": {
+        "metrics": ['무릎 신전(Knee Ext)', '지면접촉시간(GCT)', '수직진폭(Oscillation)', '골반 밸런스(Pelvic)', '상하체 동기화(Arm Sync)'],
+        "sports": ["100m 단거리 (Sprint)", "400m 스프린트", "마라톤 (Marathon)", "100m/110m 허들", "경보 (Race Walking)"]
     },
-    "Jump (도약)": {
-        "metrics": ['Take-off', 'COM Drop', 'Approach Vel.', 'Flight Time', 'Landing'],
-        "sports": ["Long Jump", "Triple Jump", "High Jump", "Pole Vault"]
+    "Jump (도약/뛰기)": {
+        "metrics": ['도약 무릎각(Take-off)', '무게중심 강하(COM Drop)', '진입 속도(Approach)', '체공 시간(Flight)', '착지 안정성(Landing)'],
+        "sports": ["멀리뛰기 (Long Jump)", "세단뛰기 (Triple Jump)", "높이뛰기 (High Jump)", "장대높이뛰기 (Pole Vault)"]
     },
-    "Throw (투척)": {
-        "metrics": ['Release Angle', 'Velocity', 'Blocking', 'Trunk Twist', 'Shoulder'],
-        "sports": ["Javelin Throw", "Shot Put"]
+    "Throw (투척/던지기)": {
+        "metrics": ['릴리스 팔각도(Release)', '투척 속도(Velocity)', '앞발 블록킹(Blocking)', '몸통 비틀림(Trunk)', '어깨 회전축(Shoulder)'],
+        "sports": ["창던지기 (Javelin)", "포환던지기 (Shot Put)"]
     }
 }
 
-benchmarks = {
-    "🌍 World Record": {"angle": 175.5, "radar": [99, 98, 97, 99, 98], "color": "#000000"},
-    "🥇 Olympic Gold": {"angle": 172.0, "radar": [96, 95, 96, 95, 97], "color": "#F1BF00"},
-    "🇰🇷 Korea Elite": {"angle": 165.5, "radar": [88, 90, 85, 88, 90], "color": "#CD2E3A"},
-    "🌐 Global Amateur": {"angle": 150.0, "radar": [60, 65, 55, 60, 70], "color": "#888888"}
+# 🚀 [핵심] 종목별 최강국 벤치마크 DB 분리 (구글 AR 안경 연동용)
+benchmark_db = {
+    "Sprint": {
+        "🌍 World Record (세계 신기록)": {"angle": 172.5, "radar": [99, 99, 90, 98, 99], "color": "#000000"},
+        "🇯🇲 Jamaica Elite (자메이카)": {"angle": 171.0, "radar": [97, 98, 88, 97, 98], "color": "#009B3A"},
+        "🇺🇸 US Elite (미국)": {"angle": 170.5, "radar": [96, 96, 89, 95, 96], "color": "#3C3B6E"},
+        "🇰🇷 Korea Elite (한국)": {"angle": 167.5, "radar": [88, 90, 82, 88, 90], "color": "#CD2E3A"},
+        "🌐 Global Amateur (일반)": {"angle": 150.0, "radar": [60, 50, 65, 55, 60], "color": "#888888"}
+    },
+    "Distance": {
+        "🌍 World Record (세계 신기록)": {"angle": 168.5, "radar": [98, 97, 96, 99, 98], "color": "#000000"},
+        "🇰🇪 Kenya Elite (케냐)": {"angle": 167.5, "radar": [96, 95, 94, 96, 97], "color": "#009E60"},
+        "🇯🇵 Japan Elite (일본)": {"angle": 163.5, "radar": [87, 89, 82, 87, 91], "color": "#BC002D"},
+        "🇰🇷 Korea Elite (한국)": {"angle": 162.8, "radar": [85, 88, 80, 85, 90], "color": "#CD2E3A"},
+        "🌐 Global Amateur (일반)": {"angle": 155.0, "radar": [60, 65, 55, 60, 70], "color": "#888888"}
+    },
+    "Walk": {
+        "🌍 World Record (세계 신기록)": {"angle": 180.0, "radar": [99, 95, 98, 99, 97], "color": "#000000"},
+        "🇨🇳 China Elite (중국)": {"angle": 179.5, "radar": [98, 94, 97, 98, 96], "color": "#EE1C25"},
+        "🇪🇸 Spain Elite (스페인)": {"angle": 178.8, "radar": [96, 92, 95, 96, 94], "color": "#F1BF00"},
+        "🇰🇷 Korea Elite (한국)": {"angle": 178.5, "radar": [95, 90, 92, 94, 90], "color": "#CD2E3A"},
+        "🌐 Global Amateur (일반)": {"angle": 165.0, "radar": [40, 75, 85, 50, 60], "color": "#888888"}
+    },
+    "Jump": {
+        "🌍 World Record (세계 신기록)": {"angle": 178.0, "radar": [99, 98, 99, 96, 98], "color": "#000000"},
+        "🇨🇺 Cuba Elite (쿠바)": {"angle": 177.5, "radar": [96, 94, 98, 93, 94], "color": "#CB1515"},
+        "🇺🇸 US Elite (미국)": {"angle": 176.0, "radar": [97, 95, 96, 94, 95], "color": "#3C3B6E"},
+        "🇰🇷 Korea Elite (한국)": {"angle": 170.0, "radar": [85, 88, 82, 85, 88], "color": "#CD2E3A"},
+        "🌐 Global Amateur (일반)": {"angle": 155.0, "radar": [50, 60, 55, 50, 65], "color": "#888888"}
+    },
+    "Throw": {
+        "🌍 World Record (세계 신기록)": {"angle": 175.0, "radar": [98, 99, 99, 97, 98], "color": "#000000"},
+        "🇩🇪 Germany Elite (독일)": {"angle": 174.5, "radar": [96, 98, 97, 95, 96], "color": "#FFCE00"},
+        "🇨🇿 Czech Elite (체코)": {"angle": 173.0, "radar": [95, 97, 95, 94, 95], "color": "#11457E"},
+        "🇰🇷 Korea Elite (한국)": {"angle": 168.0, "radar": [85, 88, 86, 85, 87], "color": "#CD2E3A"},
+        "🌐 Global Amateur (일반)": {"angle": 150.0, "radar": [55, 60, 50, 55, 60], "color": "#888888"}
+    }
 }
 
-# 4. CSS 세팅
+# 4. 고급 CSS
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;800&display=swap');
@@ -126,16 +90,27 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 5. 사이드바 (언어 선택 적용)
+# 5. 사이드바 구성 (동적 DB 연동)
 with st.sidebar:
-    selected_lang = st.selectbox("🌐 Language", list(ui_langs.keys()))
+    selected_lang = st.selectbox("🌐 Language", ["🇰🇷 한국어", "🇺🇸 English"])
     t = ui_langs[selected_lang]
     st.markdown("---")
     
     selected_cat = st.selectbox(t['s_cat'], list(categories.keys()))
     selected_sport = st.selectbox(t['s_sport'], categories[selected_cat]["sports"])
-    selected_bench = st.selectbox(t['s_data'], list(benchmarks.keys()))
-    b_data = benchmarks[selected_bench]
+    
+    # 선택된 종목에 따라 국가별 DB 매칭
+    if "Jump" in selected_cat: b_group_name = "Jump"
+    elif "Throw" in selected_cat: b_group_name = "Throw"
+    else:
+        if "경보" in selected_sport or "Walk" in selected_sport: b_group_name = "Walk"
+        elif "마라톤" in selected_sport or "Marathon" in selected_sport: b_group_name = "Distance"
+        else: b_group_name = "Sprint"
+        
+    b_group = benchmark_db[b_group_name]
+    
+    selected_bench = st.selectbox(t['s_data'], list(b_group.keys()))
+    b_data = b_group[selected_bench]
     
     st.markdown("---")
     video_file = st.file_uploader(t['s_up'], type=['mp4', 'mov', 'avi'])
@@ -151,10 +126,19 @@ st.markdown(f"""
 
 # 6. 메인 딥러닝 분석 시뮬레이션
 if video_file and analyze_btn:
-    with st.spinner('Translating & Generating AI Coaching...'):
-        score = 78; my_stats = [75, 68, 85, 70, 65]; avg_angle = 155.9 
+    with st.spinner('Accessing Global Database...'):
+        score = 78; my_stats = [75, 68, 85, 70, 65]
+        
+        # 종목별 내 각도(Mock Data) 동적 적용
+        if b_group_name == "Sprint": avg_angle = 158.5
+        elif b_group_name == "Distance": avg_angle = 155.9
+        elif b_group_name == "Walk": avg_angle = 172.0
+        elif b_group_name == "Jump": avg_angle = 162.5
+        elif b_group_name == "Throw": avg_angle = 158.0
+        
         target_angle = b_data['angle']; gap = target_angle - avg_angle
-        bench_name = selected_bench.split(" ")[0]; current_metrics = categories[selected_cat]["metrics"]
+        bench_name = selected_bench.split(" ")[0]
+        current_metrics = categories[selected_cat]["metrics"]
         
     st.markdown(f"<h3>{t['r_title']}</h3>", unsafe_allow_html=True)
     
@@ -191,22 +175,22 @@ if video_file and analyze_btn:
         st.markdown('<div class="coaching-box" style="margin-top: 25px;">', unsafe_allow_html=True)
         tab_pro, tab_kids = st.tabs([t['tab_pro'], t['tab_kids']])
         
-        # 언어팩을 기반으로 한 다국어 동적 코칭 출력
-        if "Sprint" in selected_sport:
+        if b_group_name == "Sprint":
             with tab_pro: st.markdown(t['c_sprint_pro'].format(avg_angle=avg_angle, gap=gap), unsafe_allow_html=True)
             with tab_kids: st.markdown(t['c_sprint_kids'], unsafe_allow_html=True)
-        elif "Marathon" in selected_sport:
+        elif b_group_name == "Distance":
             with tab_pro: st.markdown(t['c_mara_pro'].format(avg_angle=avg_angle, gap=gap), unsafe_allow_html=True)
             with tab_kids: st.markdown(t['c_mara_kids'], unsafe_allow_html=True)
-        elif "Jump" in selected_cat:
+        elif b_group_name == "Walk":
+            with tab_pro: st.markdown(t['c_walk_pro'].format(avg_angle=avg_angle, gap=gap), unsafe_allow_html=True)
+            with tab_kids: st.markdown(t['c_walk_kids'], unsafe_allow_html=True)
+        elif b_group_name == "Jump":
             with tab_pro: st.markdown(t['c_jump_pro'].format(avg_angle=avg_angle, gap=gap), unsafe_allow_html=True)
             with tab_kids: st.markdown(t['c_jump_kids'], unsafe_allow_html=True)
-        elif "Throw" in selected_cat:
+        elif b_group_name == "Throw":
             with tab_pro: st.markdown(t['c_throw_pro'].format(avg_angle=avg_angle, gap=gap), unsafe_allow_html=True)
             with tab_kids: st.markdown(t['c_throw_kids'], unsafe_allow_html=True)
-        else:
-            with tab_pro: st.markdown("Analyzing...")
-            with tab_kids: st.markdown("Have fun!")
+            
         st.markdown('</div>', unsafe_allow_html=True)
 
 # 7. 비전 섹션
