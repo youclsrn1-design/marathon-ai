@@ -22,7 +22,7 @@ def calculate_angle(a, b, c):
 st.set_page_config(page_title="ATHLETES AI SUPREME", layout="wide")
 st.title("🏃‍♂️ ATHLETES AI: 초정밀 마라톤 & 경보 분석기")
 
-# 🚨 사용자 주의사항 (대표님 요청 사항)
+# 🚨 사용자 주의사항 (대표님 요청)
 st.warning("⚠️ **주의: 10초 이내의 영상만 올리세요.** (영상 분석 속도와 서버 안정성을 위함입니다)")
 
 with st.sidebar:
@@ -33,12 +33,13 @@ with st.sidebar:
 uploaded_file = st.file_uploader("영상을 업로드하세요", type=["mp4", "mov", "avi"])
 
 if uploaded_file:
-    # --- 상태 안내 (대표님 요청 사항) ---
-    status_text = st.empty()
-    status_text.info("🔄 **업데이트 합니다...** (AI가 프레임 단위로 영상을 분석 중입니다)")
+    # --- 상태 안내 (대표님 요청) ---
+    status_placeholder = st.empty()
+    status_placeholder.info("🔄 **업데이트 합니다...** (AI가 프레임 단위로 영상을 분석 중입니다)")
     
     try:
-        tfile = tempfile.NamedTemporaryFile(delete=False)
+        # 입력 영상 처리
+        tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
         tfile.write(uploaded_file.read())
         cap = cv2.VideoCapture(tfile.name)
         
@@ -46,8 +47,12 @@ if uploaded_file:
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = int(cap.get(cv2.CAP_PROP_FPS))
         
-        out_path = "output.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*'VP80') 
+        # 출력 영상 경로 설정 (안전한 임시 경로 사용)
+        out_tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+        out_path = out_tfile.name
+        
+        # 코덱 설정 (웹 호환성이 높은 avc1 또는 mp4v 시도)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
         out = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
 
         angles = []
@@ -68,7 +73,6 @@ if uploaded_file:
                 mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
                 lm = results.pose_landmarks.landmark
                 
-                # 왼쪽 관절 좌표
                 hip = [lm[23].x * width, lm[23].y * height]
                 knee = [lm[25].x * width, lm[25].y * height]
                 ankle = [lm[27].x * width, lm[27].y * height]
@@ -77,14 +81,10 @@ if uploaded_file:
                 angle = calculate_angle(hip, knee, ankle)
                 angles.append(angle)
                 
-                # --- [핵심] 진짜 영상 분석 기반 파울 판정 ---
                 if sport == "경보":
-                    # 1. 무릎 굽힘: 땅에 닿는 순간 각도가 170도 미만인 프레임 수집
                     if angle < 170:
                         foul_bent_frames += 1
                         cv2.putText(frame, "KNEE BENT", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-                    
-                    # 2. 공중 부양: 두 발의 Y좌표가 모두 지면에서 상당히 높을 때
                     if lm[27].y < 0.85 and lm[28].y < 0.85:
                         foul_flight_frames += 1
                         cv2.putText(frame, "LOSS OF CONTACT", (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
@@ -93,16 +93,22 @@ if uploaded_file:
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
             out.write(frame)
-            progress_bar.progress(len(angles) / total_frames)
+            if total_frames > 0:
+                progress_bar.progress(min(len(angles) / total_frames, 1.0))
 
         cap.release()
         out.release()
         
-        status_text.empty() # 분석 완료 후 메시지 삭제
-        st.success("✅ 분석 완료!")
-        st.video(out_path)
+        status_placeholder.empty()
         
-        # --- 판정 리포트 ---
+        # 파일이 정상적으로 생성되었는지 확인 후 출력
+        if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+            st.success("✅ 분석 완료!")
+            st.video(out_path)
+        else:
+            st.error("⚠️ **업데이트 합니다...** (영상 생성 실패. 코덱 호환성 문제입니다.)")
+            
+        # --- 리포트 출력 ---
         max_angle = max(angles) if angles else 0
         st.markdown(f"## 📊 {sport} 정밀 분석 결과")
         
@@ -112,21 +118,17 @@ if uploaded_file:
             
         with col2:
             if sport == "경보":
-                # 전체 프레임 중 파울이 감지된 비율이 일정 수준(예: 3프레임 이상)일 때만 파울로 선언
                 st.subheader("🚨 AI 심판 판정")
                 if foul_bent_frames > 3:
-                    st.error(f"❌ 파울: 무릎 굽힘 감지 ({foul_bent_frames}개 프레임)")
+                    st.error(f"❌ 파울: 무릎 굽힘 감지 ({foul_bent_frames}회)")
                 if foul_flight_frames > 3:
-                    st.error(f"❌ 파울: 공중 부양 감지 ({foul_flight_frames}개 프레임)")
+                    st.error(f"❌ 파울: 공중 부양 감지 ({foul_flight_frames}회)")
                 if foul_bent_frames <= 3 and foul_flight_frames <= 3:
                     st.success("✅ Clean: 규정 위반 없음")
             else:
                 st.subheader("🏃 마라톤 코칭")
-                if max_angle > 170: st.success("훌륭한 다리 뻗기입니다!")
-                else: st.warning("보폭 확대를 위해 무릎을 더 펴는 연습이 필요합니다.")
+                if max_angle > 170: st.success("훌륭한 자세입니다!")
+                else: st.warning("무릎을 조금 더 펴서 보폭을 넓혀보세요.")
 
     except Exception as e:
-        status_text.error(f"⚠️ **업데이트 합니다...** (오류 발생: {e})")
-
-else:
-    st.info("좌측에서 종목을 선택하고 영상을 업로드해 주세요.")
+        status_placeholder.error(f"⚠️ **업데이트 합니다...** (오류 발생: {e})")
