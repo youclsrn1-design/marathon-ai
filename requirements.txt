@@ -1,5 +1,5 @@
 streamlit
-opencv-python-headless
 mediapipe
-plotly
-numpy<2.0.0
+opencv-python-headless
+numpy
+Pillow
