@@ -1,4 +1,4 @@
 opencv-python-headless
 mediapipe==0.10.14
 plotly
-numpy
+numpy<2.0.0
