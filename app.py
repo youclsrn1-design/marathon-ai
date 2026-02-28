@@ -10,20 +10,12 @@ mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-# 📐 관절 각도 계산 함수
-def calculate_angle(a, b, c):
-    a, b, c = np.array(a), np.array(b), np.array(c)
-    ba, bc = a - b, c - b
-    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.degrees(np.arccos(np.clip(cosine_angle, -1.0, 1.0)))
-    return int(angle)
-
 # --- UI 레이아웃 ---
 st.set_page_config(page_title="ATHLETES AI SUPREME", layout="wide")
-st.title("🏃‍♂️ ATHLETES AI: 마라톤 & 경보 착지 정밀 분석")
+st.title("🏃‍♂️ ATHLETES AI: 경보 지면 접촉 정밀 판독")
 
 # 🚨 사용자 주의사항
-st.warning("⚠️ **주의: 10초 이내의 영상만 올리세요.** (정밀 분석을 위해 필수입니다)")
+st.warning("⚠️ **주의: 10초 이내의 영상만 올리세요.** (정밀 판독을 위해 필수입니다)")
 
 with st.sidebar:
     st.header("👤 분석 설정")
@@ -34,7 +26,7 @@ uploaded_file = st.file_uploader("영상을 업로드하세요", type=["mp4", "m
 
 if uploaded_file:
     status_placeholder = st.empty()
-    status_placeholder.info("🔄 **업데이트 합니다...** (AI가 착지 지점을 추적 중입니다)")
+    status_placeholder.info("🔄 **업데이트 합니다...** (AI가 발의 지면 접촉 상태를 분석 중입니다)")
     
     try:
         tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
@@ -50,9 +42,7 @@ if uploaded_file:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
         out = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
 
-        landing_angles = []
-        foul_bent_count = 0
-        foul_flight_count = 0
+        foul_flight_frames = [] # 파울이 발생한 프레임 번호 저장
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         progress_bar = st.progress(0)
         
@@ -68,40 +58,25 @@ if uploaded_file:
                 mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
                 lm = results.pose_landmarks.landmark
                 
-                # 좌/우 발목 Y좌표 (지면 접촉 확인용)
-                l_ankle_y = lm[27].y
-                r_ankle_y = lm[28].y
+                # 좌/우 발목 및 발가락 Y좌표 (지면 접촉 확인용)
+                # MediaPipe Y값은 1.0에 가까울수록 지면(아래쪽)입니다.
+                l_foot = lm[27].y  # 왼쪽 발목
+                r_foot = lm[28].y  # 오른쪽 발목
                 
-                # 착지 지점 포착 로직: 발목이 화면 하단에 가장 가까워지는 순간
-                # (MediaPipe Y는 아래로 갈수록 커짐, 0.85 이상을 지면 근처로 간주)
-                is_landing_frame = l_ankle_y > 0.85 or r_ankle_y > 0.85
-                
-                # 관절 좌표 (분석용)
-                hip = [lm[23].x * width, lm[23].y * height]
-                knee = [lm[25].x * width, lm[25].y * height]
-                ankle = [lm[27].x * width, lm[27].y * height]
-                
-                angle = calculate_angle(hip, knee, ankle)
-
-                if sport == "경보" and is_landing_frame:
-                    landing_angles.append(angle)
-                    
-                    # 1. 착지 지점 무릎 굽힘 포착 (175도 미만이면 파울로 간주)
-                    if angle < 175:
-                        foul_bent_count += 1
-                        cv2.putText(frame, f"BENT! {angle}deg", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
-                    
-                    # 2. 착지 지점 공중 부양 포착 (양발이 지면에서 일정 높이 이상일 때)
-                    if l_ankle_y < 0.82 and r_ankle_y < 0.82:
-                        foul_flight_count += 1
-                        cv2.putText(frame, "LOSS OF CONTACT!", (50, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 3)
-
-                cv2.putText(frame, f"Knee: {angle}", (int(knee[0]), int(knee[1])), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                # --- [경보 핵심 로직] 공중 부양(Loss of Contact) 판정 ---
+                # 양발이 모두 특정 기준선(예: 0.82) 위로 올라가면 지면 이탈로 간주
+                if sport == "경보":
+                    if l_foot < 0.82 and r_foot < 0.82:
+                        foul_flight_frames.append(frame_idx)
+                        cv2.putText(frame, "LOSS OF CONTACT!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4)
+                        # 발 주위에 경고 표시
+                        cv2.circle(frame, (int(lm[27].x * width), int(lm[27].y * height)), 20, (0, 0, 255), -1)
+                        cv2.circle(frame, (int(lm[28].x * width), int(lm[28].y * height)), 20, (0, 0, 255), -1)
 
             out.write(frame)
             frame_idx += 1
-            progress_bar.progress(min(frame_idx / total_frames, 1.0))
+            if total_frames > 0:
+                progress_bar.progress(min(frame_idx / total_frames, 1.0))
 
         cap.release()
         out.release()
@@ -112,28 +87,19 @@ if uploaded_file:
             st.video(out_path)
         
         # --- 리포트 섹션 ---
-        st.markdown(f"## 📊 {sport} 착지 정밀 분석 리포트")
-        avg_landing_angle = sum(landing_angles)//len(landing_angles) if landing_angles else 0
+        st.markdown(f"## 📊 {sport} 판독 리포트")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("착지 시 평균 각도", f"{avg_landing_angle}°")
-            st.write("※ 경보 규정상 착지 시 무릎은 180도에 가깝게 펴져야 합니다.")
-            
-        with col2:
-            if sport == "경보":
-                st.subheader("🚨 착지 지점 파울 판정")
-                if foul_bent_count > 0:
-                    st.error(f"❌ 무릎 굽힘 포착: {foul_bent_count}회")
-                if foul_flight_count > 0:
-                    st.error(f"❌ 공중 부양(떠 있음) 포착: {foul_flight_count}회")
-                if foul_bent_count == 0 and foul_flight_count == 0:
-                    st.success("✅ Clean: 모든 착지 지점이 규정 내에 있습니다.")
+        if sport == "경보":
+            st.subheader("🚨 실시간 지면 접촉 판정")
+            if len(foul_flight_frames) > 0:
+                st.error(f"❌ **파울 감지:** 양발이 지면에서 동시에 떨어진 순간이 {len(foul_flight_frames)}프레임 포착되었습니다.")
+                st.write("경보 규정상 한쪽 발은 항상 지면에 닿아 있어야 합니다. 현재 영상에서는 '뛰는 동작'이 감지되었습니다.")
             else:
-                st.subheader("🏃 마라톤 피드백")
-                st.info(f"착지 각도 {avg_landing_angle}°를 바탕으로 추진력을 계산합니다.")
+                st.success("✅ **Clean:** 모든 구간에서 지면 접촉이 정상적으로 유지되었습니다.")
+        else:
+            st.info("마라톤 모드에서는 전신 밸런스와 주법을 중심으로 분석합니다. (업데이트 예정)")
 
     except Exception as e:
-        status_placeholder.error(f"⚠️ **업데이트 합니다...** (분석 중 오류: {e})")
+        status_placeholder.error(f"⚠️ **업데이트 합니다...** (분석 중 오류 발생: {e})")
 else:
-    st.info("좌측 설정을 확인하고 10초 이내의 영상을 올려주세요.")
+    st.info("좌측에서 종목을 선택하고 10초 이내의 영상을 올려주세요.")
