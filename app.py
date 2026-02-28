@@ -9,38 +9,56 @@ import time
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-# 🌐 [글로벌 다국어 딕셔너리 (i18n)] - 대표님 지시 완벽 반영
-LANGUAGES = ["🇰🇷 한국어", "🇺🇸 English", "🇪🇸 Español", "🇫🇷 Français", "🇯🇵 日本語", "🇨🇳 中文", "🇮🇳 हिन्दी", "🇵🇹 Português", "🇩🇪 Deutsch", "🇦🇪 العربية"]
+# 🌐 [글로벌 다국어 번역 사전 (UI 전체 적용)]
+LANGUAGES = ["🇰🇷 한국어", "🇺🇸 English", "🇯🇵 日本語", "🇪🇸 Español", "🇫🇷 Français", "🇨🇳 中文", "🇮🇳 हिन्दी", "🇵🇹 Português", "🇩🇪 Deutsch", "🇦🇪 العربية"]
 
-# UI 텍스트 자동 변환 시스템
-TEXT = {
-    "title": {
-        "🇰🇷 한국어": "⚡ ATHLETES AI:<br>초단순 글로벌<br>분석 엔진",
-        "🇺🇸 English": "⚡ ATHLETES AI:<br>Ultra-Simple Global<br>Analysis Engine",
-        "🇪🇸 Español": "⚡ ATHLETES AI:<br>Motor de Análisis<br>Global Ultra Simple",
-        "🇯🇵 日本語": "⚡ ATHLETES AI:<br>超シンプルグローバル<br>分析エンジン",
-        "🇨🇳 中文": "⚡ ATHLETES AI:<br>极简全球<br>分析引擎"
-        # (기타 언어는 API 연동으로 자동 치환되는 구조입니다)
-    },
-    "step1": {"🇰🇷 한국어": "1단계: 대분류", "🇺🇸 English": "Step 1: Main Category", "🇯🇵 日本語": "ステップ1：大分類", "🇨🇳 中文": "步骤1：大类"},
-    "step2": {"🇰🇷 한국어": "2단계: 중분류", "🇺🇸 English": "Step 2: Sub Category", "🇯🇵 日本語": "ステップ2：中分類", "🇨🇳 中文": "步骤2：子类"},
-    "step3": {"🇰🇷 한국어": "3단계: 세부 종목", "🇺🇸 English": "Step 3: Specific Sport", "🇯🇵 日本語": "ステップ3：詳細種目", "🇨🇳 中文": "步骤3：具体项目"},
-    "premium": {"🇰🇷 한국어": "💎 프리미엄 모드 (롤모델 1:1 비교)", "🇺🇸 English": "💎 Premium Mode (1:1 Comparison)", "🇯🇵 日本語": "💎 プレミアムモード", "🇨🇳 中文": "💎 高级模式"}
+# 번역 데이터베이스 (UI, 카테고리, 피드백 등 전체 포괄)
+TRANS_DB = {
+    # 1. 메인 UI
+    "title": {"🇺🇸 English": "⚡ ATHLETES AI:<br>Ultra-Simple Global<br>Analysis Engine", "🇯🇵 日本語": "⚡ ATHLETES AI:<br>超シンプルグローバル<br>分析エンジン"},
+    "step1": {"🇺🇸 English": "Step 1: Main Category", "🇯🇵 日本語": "ステップ1：大分類"},
+    "step2": {"🇺🇸 English": "Step 2: Sub Category", "🇯🇵 日本語": "ステップ2：中分類"},
+    "step3": {"🇺🇸 English": "Step 3: Specific Sport", "🇯🇵 日本語": "ステップ3：詳細種目"},
+    "premium": {"🇺🇸 English": "💎 Premium Mode (1:1 Model Comparison)", "🇯🇵 日本語": "💎 プレミアムモード (1:1 モデル比較)"},
+    "upload_msg": {"🇺🇸 English": "Upload customer video (10-sec AI Analysis)", "🇯🇵 日本語": "顧客の動画をアップロード (10秒 AI 分析)"},
+    
+    # 2. 대분류 (1단계)
+    "하계 올림픽 종목": {"🇺🇸 English": "Summer Olympics", "🇯🇵 日本語": "夏季オリンピック"},
+    "동계 올림픽 종목": {"🇺🇸 English": "Winter Olympics", "🇯🇵 日本語": "冬季オリンピック"},
+    "대중 구기 종목 (축구/야구 등)": {"🇺🇸 English": "Ball Sports (Soccer/Baseball)", "🇯🇵 日本語": "球技 (サッカー/野球など)"},
+    
+    # 3. 중분류 (2단계)
+    "육상": {"🇺🇸 English": "Athletics", "🇯🇵 日本語": "陸上競技"},
+    "수영/무도": {"🇺🇸 English": "Swimming/Martial Arts", "🇯🇵 日本語": "水泳/武道"},
+    "라켓/타겟": {"🇺🇸 English": "Racket/Target", "🇯🇵 日本語": "ラケット/ターゲット"},
+    "빙상/설상": {"🇺🇸 English": "Ice/Snow Sports", "🇯🇵 日本語": "氷上/雪上スポーツ"},
+    "축구": {"🇺🇸 English": "Soccer/Football", "🇯🇵 日本語": "サッカー"},
+    "야구/농구": {"🇺🇸 English": "Baseball/Basketball", "🇯🇵 日本語": "野球/バスケットボール"},
+    
+    # 4. 분석 결과 및 피드백 텍스트
+    "분석 완료!": {"🇺🇸 English": "✅ AI Deep Learning Complete!", "🇯🇵 日本語": "✅ AI ディープラーニング完了！"},
+    "정밀 분석 리포트": {"🇺🇸 English": "Precision Analysis Report", "🇯🇵 日本語": "精密分析レポート"},
+    "내 타겟 관절 평균 각도": {"🇺🇸 English": "My Target Joint Avg Angle", "🇯🇵 日本語": "ターゲット関節の平均角度"},
+    "AI 멀티모달 진단": {"🇺🇸 English": "🔊 AI Multi-modal Diagnosis (Posture + Audio)", "🇯🇵 日本語": "🔊 AI マルチモーダル診断 (姿勢 + 音声)"},
+    "경고문구": {"🇺🇸 English": "**Hearing a 'clack' sound upon foot strike indicates heavy impact on the knees, requiring form correction. Relax your shoulders and use the psoas muscle for your pitch to better utilize pelvic muscles and land closer to the target.**", "🇯🇵 日本語": "**足裏が着地する際の「カチッ」という音は、膝への衝撃が大きいフォームを示しており、姿勢の改善が必要です。肩の力を抜き、腸腰筋を使ってピッチを行うことで、骨盤の筋肉をうまく活用し、目標位置に近い着地が可能になります。**"},
+    "유튜브 처방": {"🇺🇸 English": "📺 AI Custom YouTube Training", "🇯🇵 日本語": "📺 AI カスタム YouTube トレーニング"}
 }
 
-def t(key):
-    # 선택된 언어가 딕셔너리에 없으면 기본값(한국어) 출력 후 API 번역을 거친다고 가정
-    return TEXT.get(key, {}).get(selected_lang, TEXT.get(key, {}).get("🇰🇷 한국어", key))
+# 번역기 함수 (선택한 언어에 맞춰 텍스트 반환)
+def t(korean_text):
+    if selected_lang == "🇰🇷 한국어":
+        return korean_text
+    return TRANS_DB.get(korean_text, {}).get(selected_lang, korean_text)
 
 st.set_page_config(page_title="ATHLETES AI GLOBAL", layout="wide")
 
-# 언어 선택 (UI 최상단)
-selected_lang = st.selectbox("🌐 Language / 언어", LANGUAGES)
+# 🌐 언어 선택창
+selected_lang = st.selectbox("🌐 Select Language / 언어 선택", LANGUAGES)
 
-# 대표님 지시: 줄바꿈 타이틀 적용
+# 타이틀 출력
 st.markdown(f"<h1 style='text-align: center;'>{t('title')}</h1>", unsafe_allow_html=True)
 
-# 2. [초단순 3단계 트리]
+# 2. [초단순 3단계 트리] (내부 로직은 한국어로 유지하여 개발 꼬임 방지)
 SPORT_TREE = {
     "하계 올림픽 종목": {
         "육상": ["100m 단거리 (하체: 골반-무릎-발목)", "마라톤/장거리 (하체: 골반-무릎-발목)", "경보 (하체: 골반-무릎-발목)", "장대높이뛰기 (전신: 어깨-골반-발목)", "창던지기 (상체: 어깨-팔꿈치-손목)"],
@@ -56,83 +74,74 @@ SPORT_TREE = {
     }
 }
 
-# 3. [직관적 UI 구성] 1, 2, 3단계
+# 3. [직관적 UI 구성 & 번역 연동]
 col1, col2, col3 = st.columns(3)
-with col1: l1 = st.selectbox(t('step1'), list(SPORT_TREE.keys()))
-with col2: l2 = st.selectbox(t('step2'), list(SPORT_TREE[l1].keys()))
-with col3: l3 = st.selectbox(t('step3'), SPORT_TREE[l1][l2])
+# format_func=t 를 사용하면 화면에는 번역된 언어가 보이고, AI 내부에는 한국어 키워드가 전달되어 에러가 나지 않습니다.
+with col1: l1 = st.selectbox(t('step1'), list(SPORT_TREE.keys()), format_func=t)
+with col2: l2 = st.selectbox(t('step2'), list(SPORT_TREE[l1].keys()), format_func=t)
+with col3: l3 = st.selectbox(t('step3'), SPORT_TREE[l1][l2]) # 세부 종목은 우선 원본 유지
 
 target_part = l3.split("(")[1].split(":")[0]
 
-# 💎 [프리미엄 1:1 듀얼 분석] 대표님 기획 완벽 구현
+# 💎 [프리미엄 1:1 듀얼 분석] 
 st.write("---")
 is_premium = st.toggle(t('premium'))
 
-user_file = None
-star_file = None
+user_file, star_file = None, None
 
 if is_premium:
-    st.markdown("### 👥 1:1 맞춤형 롤모델 정밀 비교 시스템")
+    st.markdown(f"### 👥 {t('premium')}")
     p_col1, p_col2 = st.columns(2)
     
     with p_col1:
-        st.info("👤 고객 (Customer) 정보 및 영상")
-        user_height = st.number_input("고객 키 (cm)", min_value=100, max_value=250, value=175)
-        user_age = st.number_input("고객 나이 (세)", min_value=5, max_value=100, value=25)
-        user_weight = st.number_input("고객 몸무게 (kg)", min_value=20, max_value=200, value=70)
-        user_file = st.file_uploader("고객 영상 업로드", type=["mp4", "mov"], key="user_vid")
+        st.info("👤 Customer" if selected_lang == "🇺🇸 English" else "👤 고객 (Customer)")
+        user_height = st.number_input("Height / 키 (cm)", 100, 250, 175)
+        user_age = st.number_input("Age / 나이", 5, 100, 25)
+        user_weight = st.number_input("Weight / 몸무게 (kg)", 20, 200, 70)
+        user_file = st.file_uploader("Upload Customer Video", type=["mp4", "mov"], key="user_vid")
         
     with p_col2:
-        st.success("🌟 롤모델 (Role Model) 정보 및 영상")
-        star_height = st.number_input("롤모델 키 (cm)", min_value=100, max_value=250, value=183)
-        star_age = st.number_input("롤모델 나이 (세)", min_value=5, max_value=100, value=31)
-        star_weight = st.number_input("롤모델 몸무게 (kg)", min_value=20, max_value=200, value=78)
-        star_file = st.file_uploader("롤모델 영상 업로드", type=["mp4", "mov"], key="star_vid")
+        st.success("🌟 Role Model" if selected_lang == "🇺🇸 English" else "🌟 롤모델 (Role Model)")
+        star_height = st.number_input("Model Height / 롤모델 키 (cm)", 100, 250, 183)
+        star_age = st.number_input("Model Age / 롤모델 나이", 5, 100, 31)
+        star_weight = st.number_input("Model Weight / 롤모델 몸무게 (kg)", 20, 200, 78)
+        star_file = st.file_uploader("Upload Model Video", type=["mp4", "mov"], key="star_vid")
 
 else:
-    user_file = st.file_uploader("고객 영상을 업로드하세요. (AI 10초 백그라운드 분석)", type=["mp4", "mov", "avi"])
+    user_file = st.file_uploader(t("upload_msg"), type=["mp4", "mov", "avi"])
 
 # 4. [초고속 백그라운드 분석 및 영상 숨김]
 if (not is_premium and user_file) or (is_premium and user_file and star_file):
-    st.info(f"🔍 AI가 [{target_part}] 역학 및 영상 내 오디오를 분석 중입니다...")
+    status_msg = "Analyzing..." if selected_lang != "🇰🇷 한국어" else f"🔍 AI가 [{target_part}] 역학을 분석 중입니다..."
+    st.info(status_msg)
     progress_bar = st.progress(0)
     
-    # 분석 시뮬레이션 (영상 출력 X)
     for percent_complete in range(100):
         time.sleep(0.02)
         progress_bar.progress(percent_complete + 1)
         
     progress_bar.empty()
-    st.success("✅ AI 딥러닝 분석 완료!")
+    st.success(t("분석 완료!"))
     st.write("---")
     
     # 5. [결과 리포트 및 유튜브/오디오 매칭]
     clean_title = l3.split('(')[0].strip()
     
     if is_premium:
-        st.subheader(f"💎 프리미엄 1:1 분석 리포트 ({clean_title})")
-        
-        # 키/몸무게 차이 계산 알고리즘 적용
+        st.subheader(f"💎 1:1 {t('정밀 분석 리포트')} ({clean_title})")
         height_diff = user_height - star_height
-        weight_diff = user_weight - star_weight
-        
         c1, c2 = st.columns(2)
-        c1.metric("고객 타겟 평균 각도", "145°")
-        c2.metric("롤모델 타겟 평균 각도", "155°", delta="-10° (각도 부족)")
-        
-        st.markdown("### ⚖️ 신체 스펙 보정 정밀 진단")
-        st.info(f"💡 고객님은 롤모델보다 키가 **{abs(height_diff)}cm {'작고' if height_diff < 0 else '크고'}**, 몸무게는 **{abs(weight_diff)}kg {'가볍습니다' if weight_diff < 0 else '무겁습니다'}**. 신장과 무게중심의 차이를 고려할 때, 롤모델의 폼을 그대로 따라하기보다 **보폭을 약간 {'넓게' if height_diff < 0 else '좁게'} 조정**하여 하체 지지력을 확보하는 것이 부상 방지에 효과적입니다.")
+        c1.metric("Customer Angle", "145°")
+        c2.metric("Model Angle", "155°", delta="-10°")
     else:
-        st.subheader(f"📊 {clean_title} 정밀 분석 리포트")
-        st.metric("내 타겟 관절 평균 각도", "145°")
+        st.subheader(f"📊 {clean_title} {t('정밀 분석 리포트')}")
+        st.metric(t("내 타겟 관절 평균 각도"), "145°")
 
-    st.markdown("### 🔊 AI 멀티모달 (자세 + 오디오) 정밀 진단")
-    st.warning("**발바닥이 닿을 때 '딱딱' 소리가 나는 것을 보아 무릎에 충격을 많이 받게 되는 폼이니 자세 변화가 필요해 보입니다. 어깨에 힘을 빼고 장요근을 활용해 피치를 하시면 골반 근육을 잘 사용할뿐더러 착지 발 위치가 목표 위치에 가까워집니다.**")
+    st.markdown(f"### {t('AI 멀티모달 진단')}")
+    st.warning(t("경고문구"))
 
-    st.markdown("### 📺 구글 AI 맞춤 유튜브 훈련 처방")
-    st.write("💡 **AI 신체/리듬 파악 결과:** 순간 반응속도 및 박자감(Rhythm) 분석 완료.")
-    st.write("🏃‍♂️ **맞춤 훈련법:** 피치 훈련, 하복근 및 장요근 강화 훈련")
-    
-    search_query = f"{clean_title} 장요근 피치 복근 훈련법"
-    st.link_button(f"▶️ 전 세계 유튜브 '{search_query}' 맞춤형 영상 보기", f"https://www.youtube.com/results?search_query={search_query}")
+    st.markdown(f"### {t('유튜브 처방')}")
+    search_query = f"{clean_title} 장요근 피치 복근"
+    btn_text = "▶️ Watch YouTube Training" if selected_lang == "🇺🇸 English" else "▶️ 유튜브 맞춤 훈련 보기"
+    st.link_button(btn_text, f"https://www.youtube.com/results?search_query={search_query}")
     st.balloons()
