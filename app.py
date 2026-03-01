@@ -41,6 +41,8 @@ st.write("---")
 
 # 2. 달리기 영상 업로드
 st.subheader("4️⃣ 달리기 분석 영상 업로드")
+# 🔥 10초 제한 강력 안내!
+st.warning("⚠️ 안정적인 AI 분석을 위해 반드시 **10초 이내의 영상만 올려주세요!** (너무 긴 영상은 서버가 다운될 수 있습니다)")
 uploaded_video = st.file_uploader("자세 분석을 위한 러닝 영상을 올려주세요 (MP4/MOV 추천)", type=['mp4', 'mov'])
 
 st.write("---")
@@ -110,6 +112,7 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         cap.release()
         pose.close()
 
+    # 🔥 영상 즉시 소멸 기능 (무료 서버 평생 유지의 비결!)
     try:
         os.unlink(tfile_path)
     except:
@@ -133,7 +136,7 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         # 🔥 글로벌 엘리트 vs 한국 엘리트를 구분하는 초정밀 역학 피드백
         if "글로벌 엘리트" in target_time:
             if touchdown_knee_angle > 140:
-                st.error(f"⚠️ **[글로벌 톱클래스 경고 / 미세 제동력 발생]**\n\n**[역학 분석]** 세계 기록(2시간 0분대)을 노리는 글로벌 스탠다드에서 무릎 각도 {touchdown_knee_angle:.1f}도는 치명적입니다. 무게 중심보다 미세하게 앞서 착지하며 아프리카 선수들 대비 러닝 이코노미가 손실되고 있습니다.\n\n**[월드클래스 처방]** 포어풋/미드풋 전환을 위한 카프바운딩 훈련을 극대화하고, 골반의 전방 회전(Pelvic rotation)을 더 활용하세요.")
+                st.error(f"⚠️ **[글로벌 톱클래스 경고 / 미세 제동력 발생]**\n\n**[역학 분석]** 세계 기록을 노리는 글로벌 스탠다드에서 무릎 각도 {touchdown_knee_angle:.1f}도는 치명적입니다. 무게 중심보다 미세하게 앞서 착지하며 러닝 이코노미가 손실되고 있습니다.\n\n**[월드클래스 처방]** 포어풋/미드풋 전환을 위한 카프바운딩 훈련을 극대화하고, 골반의 전방 회전을 더 활용하세요.")
             else:
                 st.success(f"🔥 **[글로벌 톱클래스 통과 / 킵초게급 폼]**\n\n**[역학 분석]** 아프리카 최상위 선수들과 비견될 완벽한 텐션({touchdown_knee_angle:.1f}도)입니다. 지면 반발력을 100% 탄성에너지로 전환 중입니다.\n\n**[월드클래스 처방]** 세계 무대가 코앞입니다! 현재의 수직 진폭을 유지하세요.")
         elif "한국 엘리트" in target_time:
@@ -153,3 +156,7 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         st.success("✅ 분석 완료 후 업로드된 영상은 임시 처리되어 즉시 소멸되었습니다.")
     else:
         st.error("⚠️ 영상을 업로드해 주세요!")
+
+# 🔥 대표님 이메일 피드백 안내 (화면 맨 아래에 추가)
+st.write("---")
+st.info("💡 **서비스 개선을 위한 소중한 의견을 들려주세요!**\n\n버그 신고, 기능 제안 등 어떤 피드백이든 환영합니다. 아래 이메일로 연락해 주세요.\n\n📧 **[youclsrn1@gmail.com](mailto:youclsrn1@gmail.com)**")
