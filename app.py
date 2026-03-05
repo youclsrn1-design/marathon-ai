@@ -3,7 +3,6 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import tempfile
-import time
 import os
 from PIL import Image
 
@@ -41,7 +40,6 @@ st.write("---")
 
 # 2. 달리기 영상 업로드
 st.subheader("4️⃣ 달리기 분석 영상 업로드")
-# 🔥 10초 제한 강력 안내!
 st.warning("⚠️ 안정적인 AI 분석을 위해 반드시 **10초 이내의 영상만 올려주세요!** (너무 긴 영상은 서버가 다운될 수 있습니다)")
 uploaded_video = st.file_uploader("자세 분석을 위한 러닝 영상을 올려주세요 (MP4/MOV 추천)", type=['mp4', 'mov'])
 
@@ -73,6 +71,9 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
     trunk_lean_angle = None
     trunk_frame_pil = None
     
+    # 지면에 가장 가까운 발목 위치를 찾기 위한 변수 (MediaPipe는 아래로 갈수록 Y값이 큽니다)
+    max_ankle_y = 0.0 
+    
     with st.spinner("AI가 영상을 프레임 단위로 쪼개어 정밀 역학 분석 중입니다. (임시 처리 후 즉시 소멸됩니다)"):
         frame_count = 0
         while cap.isOpened():
@@ -80,7 +81,8 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
             if not ret:
                 break
             frame_count += 1
-            if frame_count % 5 != 0:
+            # 프레임 스킵을 줄여 착지 순간을 더 정밀하게 포착합니다 (기존 5 -> 2)
+            if frame_count % 2 != 0:
                 continue
 
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -88,31 +90,46 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
             
             if results.pose_landmarks:
                 landmarks = results.pose_landmarks.landmark
-                hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
-                knee = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
-                ankle = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
-                knee_angle = calculate_angle(hip, knee, ankle)
                 
-                if touchdown_knee_angle is None or knee_angle > touchdown_knee_angle:
-                    touchdown_knee_angle = knee_angle
+                # 왼쪽 다리 좌표 추출
+                l_hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+                l_knee = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
+                l_ankle = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+                
+                # 오른쪽 다리 좌표 추출
+                r_hip = [landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].y]
+                r_knee = [landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
+                r_ankle = [landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
+                
+                # 현재 프레임에서 지면(아래)에 더 가까운 다리 찾기
+                if l_ankle[1] > r_ankle[1]:
+                    current_ankle_y = l_ankle[1]
+                    current_knee_angle = calculate_angle(l_hip, l_knee, l_ankle)
+                else:
+                    current_ankle_y = r_ankle[1]
+                    current_knee_angle = calculate_angle(r_hip, r_knee, r_ankle)
+                
+                # 여태까지 본 발목 위치 중 가장 지면에 가깝다면(착지 순간) 데이터 업데이트
+                if current_ankle_y > max_ankle_y:
+                    max_ankle_y = current_ankle_y
+                    touchdown_knee_angle = current_knee_angle
+                    
+                    # 뼈대 그리기 및 이미지 저장
                     mp_drawing.draw_landmarks(image_rgb, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
                     touchdown_frame_pil = Image.fromarray(image_rgb)
-
-                left_shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-                left_hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
-                shoulder_vec = np.array(left_shoulder)
-                hip_vec = np.array(left_hip)
-                lean_radians = np.arctan2(shoulder_vec[0]-hip_vec[0], shoulder_vec[1]-hip_vec[1])
-                lean_angle = np.abs(lean_radians * 180.0 / np.pi)
-
-                if trunk_lean_angle is None or lean_angle < trunk_lean_angle:
-                    trunk_lean_angle = lean_angle
+                    
+                    # 상체 기울기도 착지 순간을 기준으로 통일하여 측정
+                    left_shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+                    shoulder_vec = np.array(left_shoulder)
+                    hip_vec = np.array(l_hip) # 왼쪽 힙을 기준으로 계산
+                    lean_radians = np.arctan2(shoulder_vec[0]-hip_vec[0], shoulder_vec[1]-hip_vec[1])
+                    trunk_lean_angle = np.abs(lean_radians * 180.0 / np.pi)
                     trunk_frame_pil = Image.fromarray(image_rgb)
 
         cap.release()
         pose.close()
 
-    # 🔥 영상 즉시 소멸 기능 (무료 서버 평생 유지의 비결!)
+    # 영상 즉시 소멸 
     try:
         os.unlink(tfile_path)
     except:
@@ -133,7 +150,7 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         st.write("---")
         st.subheader("💊 [진짜] 역학 기반 맞춤형 처방전")
         
-        # 🔥 글로벌 엘리트 vs 한국 엘리트를 구분하는 초정밀 역학 피드백
+        # 글로벌 엘리트 vs 한국 엘리트를 구분하는 초정밀 역학 피드백
         if "글로벌 엘리트" in target_time:
             if touchdown_knee_angle > 140:
                 st.error(f"⚠️ **[글로벌 톱클래스 경고 / 미세 제동력 발생]**\n\n**[역학 분석]** 세계 기록을 노리는 글로벌 스탠다드에서 무릎 각도 {touchdown_knee_angle:.1f}도는 치명적입니다. 무게 중심보다 미세하게 앞서 착지하며 러닝 이코노미가 손실되고 있습니다.\n\n**[월드클래스 처방]** 포어풋/미드풋 전환을 위한 카프바운딩 훈련을 극대화하고, 골반의 전방 회전을 더 활용하세요.")
@@ -155,8 +172,8 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         st.write("---")
         st.success("✅ 분석 완료 후 업로드된 영상은 임시 처리되어 즉시 소멸되었습니다.")
     else:
-        st.error("⚠️ 영상을 업로드해 주세요!")
+        st.error("⚠️ 영상에서 자세를 인식하지 못했습니다. 전신이 잘 보이는 영상을 업로드해 주세요!")
 
-# 🔥 대표님 이메일 피드백 안내 (화면 맨 아래에 추가)
+# 대표님 이메일 피드백 안내 (화면 맨 아래에 추가)
 st.write("---")
 st.info("💡 **서비스 개선을 위한 소중한 의견을 들려주세요!**\n\n버그 신고, 기능 제안 등 어떤 피드백이든 환영합니다. 아래 이메일로 연락해 주세요.\n\n📧 **[youclsrn1@gmail.com](mailto:youclsrn1@gmail.com)**")
