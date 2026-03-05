@@ -70,7 +70,6 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
     trunk_lean_angle = None
     trunk_frame_pil = None
     
-    # 지면에 가장 가까운 발목 위치를 찾기 위한 변수 (MediaPipe는 아래로 갈수록 Y값이 큽니다)
     max_ankle_y = 0.0 
     
     with st.spinner("AI가 영상을 프레임 단위로 쪼개어 정밀 역학 분석 중입니다. (임시 처리 후 즉시 소멸됩니다)"):
@@ -80,7 +79,6 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
             if not ret:
                 break
             frame_count += 1
-            # 프레임 스킵을 줄여 착지 순간을 더 정밀하게 포착합니다 (기존 5 -> 2)
             if frame_count % 2 != 0:
                 continue
 
@@ -90,17 +88,14 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
             if results.pose_landmarks:
                 landmarks = results.pose_landmarks.landmark
                 
-                # 왼쪽 다리 좌표 추출
                 l_hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
                 l_knee = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
                 l_ankle = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
                 
-                # 오른쪽 다리 좌표 추출
                 r_hip = [landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].y]
                 r_knee = [landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
                 r_ankle = [landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
                 
-                # 현재 프레임에서 지면(아래)에 더 가까운 다리 찾기
                 if l_ankle[1] > r_ankle[1]:
                     current_ankle_y = l_ankle[1]
                     current_knee_angle = calculate_angle(l_hip, l_knee, l_ankle)
@@ -108,19 +103,16 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
                     current_ankle_y = r_ankle[1]
                     current_knee_angle = calculate_angle(r_hip, r_knee, r_ankle)
                 
-                # 여태까지 본 발목 위치 중 가장 지면에 가깝다면(착지 순간) 데이터 업데이트
                 if current_ankle_y > max_ankle_y:
                     max_ankle_y = current_ankle_y
                     touchdown_knee_angle = current_knee_angle
                     
-                    # 뼈대 그리기 및 이미지 저장
                     mp_drawing.draw_landmarks(image_rgb, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
                     touchdown_frame_pil = Image.fromarray(image_rgb)
                     
-                    # 상체 기울기도 착지 순간을 기준으로 통일하여 측정
                     left_shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
                     shoulder_vec = np.array(left_shoulder)
-                    hip_vec = np.array(l_hip) # 왼쪽 힙을 기준으로 계산
+                    hip_vec = np.array(l_hip)
                     lean_radians = np.arctan2(shoulder_vec[0]-hip_vec[0], shoulder_vec[1]-hip_vec[1])
                     trunk_lean_angle = np.abs(lean_radians * 180.0 / np.pi)
                     trunk_frame_pil = Image.fromarray(image_rgb)
@@ -128,7 +120,6 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         cap.release()
         pose.close()
 
-    # 영상 즉시 소멸 
     try:
         os.unlink(tfile_path)
     except:
@@ -149,17 +140,17 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
         st.write("---")
         st.subheader("💊 [진짜] 역학 기반 맞춤형 처방전")
         
-        # 1. 상체 기울기 피드백
+        # 1. 상체 기울기 피드백 (기준 완화: 160도 ~ 175도)
         if trunk_lean_angle is not None:
-            if 165 <= trunk_lean_angle <= 175:
-                lean_feedback = "상체 전방 기울기(약 5~15도)가 추진력을 얻기에 가장 이상적인 각도입니다."
-            elif trunk_lean_angle < 165:
+            if 160 <= trunk_lean_angle <= 175:
+                lean_feedback = "상체 전방 기울기(약 5~20도)가 추진력을 얻고 충격을 분산하기에 가장 이상적인 각도입니다."
+            elif trunk_lean_angle < 160:
                 lean_feedback = "상체가 너무 앞으로 숙여져 있습니다. 고관절이 펴지지 않아 보폭이 좁아질 수 있습니다."
             else:
                 lean_feedback = "상체가 너무 세워져 있습니다(뒤로 젖혀짐). 무게중심이 뒤에 남아 브레이킹이 걸립니다."
             st.info(f"💡 **상체 밸런스 진단:** {lean_feedback}")
 
-        # 2. 무릎 각도 피드백 (스포츠 생체역학 기준 적용)
+        # 2. 무릎 각도 피드백 
         if touchdown_knee_angle > 165:
             st.error(f"⚠️ **[오버스트라이딩 경고 / 무릎 충격 과다 위험]**\n\n**[역학 분석]** 착지 시 무릎 각도({touchdown_knee_angle:.1f}도)가 너무 펴져 있습니다. 몸의 무게 중심보다 한참 앞에서 발이 떨어지며 심각한 제동(Braking)이 걸리고 있습니다.\n\n**[처방]** 발을 멀리 뻗으려는 의식을 버리고, 케이던스(발구름 수)를 5~10% 높여 발이 몸(골반) 바로 아래에 떨어지도록 교정하세요. 장경인대염, 무릎 연골 부상을 유발하는 1순위 자세입니다.")
             
@@ -167,7 +158,6 @@ if uploaded_video is not None and st.button("실시간 역학 분석 및 처방 
             st.warning(f"⚡ **[스태미나 고갈 주의 / 과도한 무릎 굽힘]**\n\n**[역학 분석]** 무릎이 {touchdown_knee_angle:.1f}도로 지나치게 굽혀진 상태에서 착지하고 있습니다. 일명 '그루초 달리기(Groucho running)' 폼으로, 뼈와 건의 탄성을 쓰지 못하고 대퇴사두근(허벅지 앞)의 근력만으로 체중을 버티고 있습니다.\n\n**[처방]** 후반 30km 이후 허벅지에 쥐가 날 확률이 매우 높습니다. 지면을 차고 나갈 때 골반을 조금 더 높게 들고 뛰는(수직 진폭을 살짝 높이는) 느낌을 가져가세요.")
             
         else:
-            # 145 ~ 165도: 역학적으로 가장 완벽한 텐션 (Golden Zone)
             if "엘리트" in target_time:
                 st.success(f"🔥 **[엘리트 폼 완벽 통과 / 최고의 러닝 이코노미]**\n\n**[역학 분석]** 엘리트 선수들의 완벽한 착지 각도({touchdown_knee_angle:.1f}도)입니다. 지면의 충격을 아킬레스건과 종아리의 탄성에너지로 100% 흡수 및 전환하고 있습니다.\n\n**[처방]** 무릎의 텐션과 롤링이 아프리카 최상위권 선수들과 비견될 만큼 훌륭합니다. 현재의 폼을 강력한 무기로 삼아 스피드 인터벌 훈련에 집중하세요!")
             else:
